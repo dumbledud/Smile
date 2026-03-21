@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>SmileTracker · ANAGAGE</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:      #04040a;
+  --surf:    #080810;
+  --card:    #0c0c18;
+  --card2:   #101020;
+  --bdr:     #181828;
+  --bdr2:    #242436;
+  --txt:     #e4e0f4;
+  --dim:     #545474;
+  --dim2:    #2c2c44;
+  --gold:    #f59e0b;
+  --goldL:   #fcd34d;
+  --goldD:   #92400e;
+  --green:   #10b981;
+  --greenL:  #34d399;
+  --purple:  #7c3aed;
+  --purpleL: #a78bfa;
+  --blue:    #3b82f6;
+  --red:     #ef4444;
+  --pink:    #ec4899;
+  --sans:    'Space Grotesk', sans-serif;
+  --mono:    'JetBrains Mono', monospace;
+  --display: 'Bebas Neue', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+
+/* ── LAYOUT ── */
+#app{
+height:100vh;display:flex;flex-direction:column;
+max-width:480px;margin:0 auto;position:relative;
+}
+
+/* ── HEADER ── */
+#header{
+display:flex;align-items:center;justify-content:space-between;
+padding:12px 16px 8px;background:var(–surf);
+border-bottom:1px solid var(–bdr);flex-shrink:0;
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{
+width:34px;height:34px;border-radius:9px;flex-shrink:0;
+background:linear-gradient(135deg,var(–gold),var(–pink));
+display:flex;align-items:center;justify-content:center;
+font-size:18px;
+}
+.logo-text{font-family:var(–display);font-size:20px;letter-spacing:.05em;color:var(–txt);line-height:1}
+.logo-sub{font-size:8px;color:var(–dim);letter-spacing:.14em;margin-top:2px}
+.header-right{text-align:right}
+.wecoin-val{font-family:var(–display);font-size:22px;letter-spacing:.04em;color:var(–gold)}
+.wecoin-lbl{font-size:7px;color:var(–dim);letter-spacing:.14em}
+
+/* ── CAM WRAP ── */
+#camWrap{
+position:relative;flex:1;background:#02020a;
+display:flex;align-items:center;justify-content:center;
+overflow:hidden;min-height:0;
+}
+#video{
+position:absolute;inset:0;width:100%;height:100%;
+object-fit:cover;transform:scaleX(-1);opacity:0;
+}
+#faceCanvas{
+position:absolute;inset:0;width:100%;height:100%;
+object-fit:cover;
+}
+
+/* Overlays */
+#loadingOverlay{
+position:absolute;inset:0;background:var(–bg);
+display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+z-index:10;
+}
+.spinner{
+width:44px;height:44px;border-radius:50%;
+border:2px solid var(–bdr2);border-top-color:var(–gold);
+animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-msg{font-size:12px;color:var(–dim);letter-spacing:.1em;text-align:center;line-height:1.8}
+.load-sub{font-size:10px;color:var(–dim2);letter-spacing:.06em}
+
+/* Score badge — center overlay */
+#scoreBadge{
+position:absolute;top:12px;left:50%;transform:translateX(-50%);
+background:rgba(4,4,10,.85);border:1px solid var(–bdr2);
+border-radius:14px;padding:8px 18px;
+display:none;flex-direction:column;align-items:center;
+backdrop-filter:blur(8px);
+}
+.score-label{font-size:8px;color:var(–dim);letter-spacing:.16em}
+.score-num{
+font-family:var(–display);font-size:42px;letter-spacing:.03em;
+line-height:1;margin-top:2px;transition:color .15s;
+}
+.score-unit{font-size:10px;color:var(–dim);letter-spacing:.1em}
+
+/* Smiling badge */
+#smilingBadge{
+position:absolute;top:12px;right:12px;
+background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(236,72,153,.2));
+border:1px solid rgba(245,158,11,.5);
+border-radius:20px;padding:5px 14px;
+font-size:11px;font-weight:600;letter-spacing:.08em;color:var(–goldL);
+display:none;animation:glow 1.4s ease infinite alternate;
+}
+@keyframes glow{from{box-shadow:0 0 8px rgba(245,158,11,.3)}to{box-shadow:0 0 20px rgba(245,158,11,.6)}}
+
+/* Streak ring */
+#streakRing{
+position:absolute;left:12px;top:12px;
+width:54px;height:54px;display:none;
+}
+#streakRing svg{width:54px;height:54px}
+#streakVal{
+position:absolute;inset:0;display:flex;flex-direction:column;
+align-items:center;justify-content:center;
+}
+.streak-num{font-family:var(–display);font-size:14px;letter-spacing:.03em;color:var(–gold);line-height:1}
+.streak-lbl{font-size:6px;color:var(–dim);letter-spacing:.1em}
+
+/* Hold bar */
+#holdWrap{
+position:absolute;bottom:0;left:0;right:0;
+padding:0 16px 6px;display:none;
+}
+#holdTrack{
+height:6px;background:var(–bdr2);border-radius:3px;overflow:hidden;
+}
+#holdFill{
+height:100%;width:0%;border-radius:3px;
+background:linear-gradient(90deg,var(–gold),var(–pink));
+transition:width .08s linear;
+}
+.hold-labels{
+display:flex;justify-content:space-between;
+font-size:7px;color:var(–dim);letter-spacing:.1em;margin-top:3px;
+}
+
+/* PR flash */
+#prFlash{
+position:absolute;inset:0;
+background:radial-gradient(ellipse at center, rgba(245,158,11,.35) 0%, transparent 70%);
+pointer-events:none;opacity:0;transition:opacity .08s;z-index:20;
+}
+#prLabel{
+position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.5);
+font-family:var(–display);font-size:72px;letter-spacing:.05em;
+color:var(–goldL);text-shadow:0 0 40px rgba(245,158,11,.8);
+pointer-events:none;opacity:0;transition:opacity .12s,transform .2s;z-index:21;
+}
+.pr-flash-active#prFlash{opacity:1}
+.pr-flash-active#prLabel{opacity:1;transform:translate(-50%,-50%) scale(1)}
+
+/* ── STATS STRIP ── */
+#statsStrip{
+display:grid;grid-template-columns:repeat(4,1fr);
+background:var(–surf);border-top:1px solid var(–bdr);
+flex-shrink:0;
+}
+.stat-cell{
+padding:9px 6px;text-align:center;
+border-right:1px solid var(–bdr);
+}
+.stat-cell:last-child{border-right:none}
+.stat-val{
+font-family:var(–display);font-size:22px;letter-spacing:.03em;
+line-height:1;
+}
+.stat-lbl{font-size:7px;color:var(–dim);letter-spacing:.1em;margin-top:2px}
+
+/* ── PROGRESS ── */
+#progressWrap{
+background:var(–surf);border-top:1px solid var(–bdr);
+padding:8px 16px;flex-shrink:0;
+}
+.prog-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.prog-title{font-size:9px;color:var(–dim);letter-spacing:.12em}
+.prog-pct{font-family:var(–mono);font-size:11px;font-weight:700;color:var(–gold)}
+#progTrack{height:5px;background:var(–bdr2);border-radius:3px;overflow:hidden}
+#progFill{
+height:100%;width:0%;border-radius:3px;
+background:linear-gradient(90deg,var(–gold),var(–pink));
+transition:width .4s ease;
+}
+.prog-sub{font-size:9px;color:var(–dim);margin-top:4px;letter-spacing:.04em}
+
+/* ── LOG ── */
+#logWrap{
+background:var(–surf);border-top:1px solid var(–bdr);
+flex:0 0 auto;max-height:140px;overflow-y:auto;
+}
+#logTitle{
+padding:7px 16px 4px;font-size:8px;color:var(–dim);
+letter-spacing:.14em;position:sticky;top:0;
+background:var(–surf);border-bottom:1px solid var(–bdr);
+}
+#logBody{padding:4px 0}
+.log-item{
+display:flex;align-items:center;gap:10px;
+padding:5px 16px;border-bottom:1px solid var(–bdr);
+animation:slideIn .2s ease;
+}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.log-icon{font-size:14px;flex-shrink:0}
+.log-text{flex:1;font-size:10px;color:var(–dim);line-height:1.4}
+.log-text strong{color:var(–txt)}
+.log-score{
+font-family:var(–mono);font-size:11px;font-weight:700;flex-shrink:0;
+}
+.log-time{font-size:8px;color:var(–dim2);flex-shrink:0}
+#noLog{padding:10px 16px;font-size:10px;color:var(–dim2);font-style:italic}
+
+/* ── CHART PANEL ── */
+#chartPanel{
+background:var(–surf);border-top:1px solid var(–bdr);
+padding:8px 16px;flex-shrink:0;display:none;
+}
+.chart-title{font-size:8px;color:var(–dim);letter-spacing:.12em;margin-bottom:6px}
+#scoreChart{width:100%;height:44px;display:block}
+
+/* ── PROTOCOL BANNER ── */
+#protoBanner{
+display:none;position:fixed;top:0;left:0;right:0;z-index:200;
+background:linear-gradient(135deg,#120800,#080000);
+border-bottom:2px solid var(–gold);
+padding:12px 14px;flex-direction:column;gap:10px;
+max-height:75vh;overflow-y:auto;
+}
+.proto-close{
+position:absolute;top:10px;right:12px;
+background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);
+color:var(–goldL);border-radius:6px;padding:3px 9px;
+cursor:pointer;font-size:11px;font-family:var(–sans);
+}
+.proto-heading{font-size:12px;color:var(–goldL);font-weight:600;line-height:1.5;padding-right:60px}
+.proto-note{font-size:9px;color:var(–dim);margin-top:2px}
+.proto-options{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.proto-opt{
+display:flex;gap:10px;align-items:flex-start;
+background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.12);
+border-radius:8px;padding:8px 10px;
+}
+.proto-badge{
+font-size:7px;font-weight:700;letter-spacing:.1em;color:var(–gold);
+background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);
+border-radius:4px;padding:2px 6px;white-space:nowrap;flex-shrink:0;margin-top:1px;
+}
+.proto-txt{font-size:10px;color:var(–dim);line-height:1.6}
+.proto-txt strong{color:var(–txt)}
+.proto-txt code{
+background:rgba(255,255,255,.05);border:1px solid var(–bdr);
+border-radius:3px;padding:1px 5px;font-family:var(–mono);font-size:9px;color:var(–purpleL);
+}
+.proto-txt a{color:var(–purpleL);text-decoration:none}
+
+/* ── MISC ── */
+#tapHint{
+position:absolute;bottom:52px;left:50%;transform:translateX(-50%);
+font-size:9px;color:rgba(255,255,255,.18);letter-spacing:.1em;
+pointer-events:none;white-space:nowrap;display:none;
+}
+::-webkit-scrollbar{width:2px}
+::-webkit-scrollbar-track{background:var(–bg)}
+::-webkit-scrollbar-thumb{background:var(–bdr2);border-radius:2px}
+
+/* Sim mode */
+#simCanvas{position:absolute;inset:0;width:100%;height:100%;display:none}
+
+/* Status dot */
+#statusDot{
+width:6px;height:6px;border-radius:50%;background:var(–dim);
+flex-shrink:0;margin-left:4px;
+}
+#statusDot.live{background:var(–green);box-shadow:0 0 6px var(–green)}
+#statusDot.sim{background:var(–gold);box-shadow:0 0 6px var(–gold)}
+</style>
+
+</head>
+<body>
+<div id="app">
+
+  <!-- Header -->
+
+  <div id="header">
+    <div class="logo">
+      <div class="logo-mark">☺</div>
+      <div>
+        <div class="logo-text">SMILETRACKER</div>
+        <div class="logo-sub">ANAGAGE · AM BOOTUP <span id="statusDot"></span></div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="wecoin-val" id="wecoinVal">4,000</div>
+      <div class="wecoin-lbl">WECOIN (WEC)</div>
+    </div>
+  </div>
+
+  <!-- Camera area -->
+
+  <div id="camWrap">
+    <video id="video" autoplay playsinline muted></video>
+    <canvas id="faceCanvas"></canvas>
+    <canvas id="simCanvas"></canvas>
+
+```
+<!-- Loading -->
+<div id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="load-msg">
+    LOADING FACE MESH<br>
+    <span class="load-sub" id="loadStep">Requesting camera…</span>
+  </div>
+</div>
+
+<!-- Score badge -->
+<div id="scoreBadge">
+  <div class="score-label">SMILE SCORE</div>
+  <div class="score-num" id="scoreNum">0</div>
+  <div class="score-unit">%</div>
+</div>
+
+<!-- Smiling indicator -->
+<div id="smilingBadge">☺ SMILING</div>
+
+<!-- Streak ring -->
+<div id="streakRing">
+  <svg viewBox="0 0 54 54">
+    <circle cx="27" cy="27" r="23" fill="none" stroke="#181828" stroke-width="4"/>
+    <circle id="streakArc" cx="27" cy="27" r="23" fill="none"
+      stroke="url(#streakGrad)" stroke-width="4"
+      stroke-dasharray="144.5" stroke-dashoffset="144.5"
+      stroke-linecap="round" transform="rotate(-90 27 27)"/>
+    <defs>
+      <linearGradient id="streakGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#f59e0b"/>
+        <stop offset="100%" stop-color="#ec4899"/>
+      </linearGradient>
+    </defs>
+  </svg>
+  <div class="streak-val">
+    <div class="streak-num" id="streakNum">0.0s</div>
+    <div class="streak-lbl">HOLD</div>
+  </div>
+</div>
+
+<!-- Tap hint -->
+<div id="tapHint">Smile and hold for 1.5s to earn a PR</div>
+
+<!-- Hold bar -->
+<div id="holdWrap">
+  <div id="holdTrack"><div id="holdFill"></div></div>
+  <div class="hold-labels">
+    <span>HOLD SMILE → PR</span>
+    <span id="holdPct">0%</span>
+  </div>
+</div>
+
+<!-- PR flash -->
+<div id="prFlash"></div>
+<div id="prLabel">PR!</div>
+```
+
+  </div>
+
+  <!-- Stats strip -->
+
+  <div id="statsStrip">
+    <div class="stat-cell">
+      <div class="stat-val" id="statPRs" style="color:var(--gold)">0</div>
+      <div class="stat-lbl">PRs TODAY</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-val" id="statGoal" style="color:var(--dim)">0/30</div>
+      <div class="stat-lbl">AM GOAL</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-val" id="statTTT" style="color:var(--purpleL)">0s</div>
+      <div class="stat-lbl">TOOTH TIME</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-val" id="statPeak" style="color:var(--greenL)">0%</div>
+      <div class="stat-lbl">PEAK SCORE</div>
+    </div>
+  </div>
+
+  <!-- Progress bar -->
+
+  <div id="progressWrap">
+    <div class="prog-row">
+      <span class="prog-title">AM BOOTUP PROGRESS</span>
+      <span class="prog-pct" id="progPct">0%</span>
+    </div>
+    <div id="progTrack"><div id="progFill"></div></div>
+    <div class="prog-sub" id="progSub">Smile and hold for 1.5s to earn a PR</div>
+  </div>
+
+  <!-- Score chart -->
+
+  <div id="chartPanel">
+    <div class="chart-title">SMILE SCORE HISTORY (LAST 60 READINGS)</div>
+    <canvas id="scoreChart" height="44"></canvas>
+  </div>
+
+  <!-- Log -->
+
+  <div id="logWrap">
+    <div id="logTitle">SESSION LOG</div>
+    <div id="logBody">
+      <div id="noLog">No PRs yet — smile and hold for 1.5s</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Protocol banner (injected below) -->
+
+<div id="protoBanner">
+  <button class="proto-close" onclick="document.getElementById('protoBanner').style.display='none'">Dismiss ✕</button>
+  <div class="proto-heading" id="protoHeading"></div>
+  <div class="proto-note">The app still works in simulation mode — all features except live face tracking.</div>
+  <div class="proto-options" id="protoOptions"></div>
+</div>
+
+<!-- MediaPipe Face Mesh -->
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════════════
+const SMILE_THRESH   = 0.30;   // score threshold to count as smiling
+const HOLD_GOAL_MS   = 1500;   // ms of continuous smile to earn a PR
+const PR_GOAL        = 30;     // AM Bootup daily goal
+const GHA            = 4000;   // starting WeCoin
+const MAX_PRS        = 10;     // max PRs for WeCoin reward
+const MAX_EAS        = 10;
+const SMOOTH_FACTOR  = 0.18;   // IIR smoothing (lower = smoother)
+
+// MediaPipe landmark indices
+const LM = {
+  lCorner: 61, rCorner: 291,
+  upperLip: 13, lowerLip: 14,
+  nose: 1, chin: 152,
+  lCheek: 234, rCheek: 454,
+  lEye: 33, rEye: 263,
+  lBrow: 105, rBrow: 334,
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════
+let prs = 0, totalToothTime = 0;
+let smoothScore = 0, smiling = false;
+let holdStart = null, streakMs = 0;
+let lastPRTime = 0;
+let peakScore = 0;
+let mode = 'loading'; // loading | live | sim
+let wecoin = GHA;
+let scoreHistory = [];
+let prLog = [];
+let sessionStart = Date.now();
+let simPhase = 0, simTick = null;
+let faceMesh = null, cameraInst = null;
+let prFlashTimeout = null;
+let chartCtx = null;
+
+// DOM refs
+const videoEl    = document.getElementById('video');
+const faceCanvas = document.getElementById('faceCanvas');
+const simCanvas  = document.getElementById('simCanvas');
+const ctx        = faceCanvas.getContext('2d');
+const loadOverlay= document.getElementById('loadingOverlay');
+const loadStep   = document.getElementById('loadStep');
+const scoreBadge = document.getElementById('scoreBadge');
+const scoreNum   = document.getElementById('scoreNum');
+const smilingBadge = document.getElementById('smilingBadge');
+const streakRing = document.getElementById('streakRing');
+const streakNum  = document.getElementById('streakNum');
+const streakArc  = document.getElementById('streakArc');
+const holdWrap   = document.getElementById('holdWrap');
+const holdFill   = document.getElementById('holdFill');
+const holdPct    = document.getElementById('holdPct');
+const tapHint    = document.getElementById('tapHint');
+const statusDot  = document.getElementById('statusDot');
+
+// ═══════════════════════════════════════════════════════════════════
+// PROTOCOL CHECK
+// ═══════════════════════════════════════════════════════════════════
+function checkProtocol() {
+  const proto = window.location.protocol;
+  const host  = window.location.hostname;
+  const isOk  = proto === 'https:' || host === 'localhost' || host === '127.0.0.1' || host === '';
+  if (isOk) return;
+
+  const banner = document.getElementById('protoBanner');
+  const isFile = proto === 'file:';
+  banner.style.display = 'flex';
+
+  document.getElementById('protoHeading').innerHTML = isFile
+    ? '⚠️ Camera unavailable — opened as file://. Use one of these to get HTTPS:'
+    : '⚠️ Camera unavailable — HTTP detected. Camera requires HTTPS:';
+
+  document.getElementById('protoOptions').innerHTML = isFile ? `
+    <div class="proto-opt"><div class="proto-badge">EASIEST</div>
+      <div class="proto-txt"><strong>Netlify Drop</strong> — go to
+        <a href="https://app.netlify.com/drop" target="_blank">app.netlify.com/drop</a>,
+        tap the upload area, pick this file → instant <code>https://</code> URL, works on phone</div></div>
+    <div class="proto-opt"><div class="proto-badge">LOCAL</div>
+      <div class="proto-txt"><strong>Python server</strong> — in Terminal:<br>
+        <code>python3 -m http.server 8080</code><br>
+        then open <code>http://localhost:8080/smiletracker.html</code></div></div>
+    <div class="proto-opt"><div class="proto-badge">VS CODE</div>
+      <div class="proto-txt"><strong>Live Server</strong> — right-click file → <em>Open with Live Server</em></div></div>
+  ` : `
+    <div class="proto-opt"><div class="proto-badge">FREE SSL</div>
+      <div class="proto-txt"><strong>Cloudflare</strong> — proxy your domain for free HTTPS</div></div>
+    <div class="proto-opt"><div class="proto-badge">TUNNEL</div>
+      <div class="proto-txt"><strong>ngrok</strong> — run <code>ngrok http 80</code>
+        for a public <code>https://</code> tunnel</div></div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// RESIZE CANVAS
+// ═══════════════════════════════════════════════════════════════════
+function resizeCanvas() {
+  const wrap = document.getElementById('camWrap');
+  faceCanvas.width  = wrap.clientWidth;
+  faceCanvas.height = wrap.clientHeight;
+  simCanvas.width   = wrap.clientWidth;
+  simCanvas.height  = wrap.clientHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+
+// ═══════════════════════════════════════════════════════════════════
+// SMILE SCORE FROM FACE LANDMARKS
+// ═══════════════════════════════════════════════════════════════════
+function getSmileScore(lm) {
+  try {
+    const get = i => lm[i];
+    const lc  = get(LM.lCorner),  rc  = get(LM.rCorner);
+    const ul  = get(LM.upperLip), ll  = get(LM.lowerLip);
+    const nos = get(LM.nose),     chi = get(LM.chin);
+    const lch = get(LM.lCheek),   rch = get(LM.rCheek);
+
+    if (!lc || !rc || !ul || !ll || !nos || !chi) return 0;
+
+    const faceH = Math.abs(chi.y - nos.y);
+    if (faceH < 0.01) return 0;
+
+    // Metric 1: corner elevation — corners above midpoint of lips = smile
+    const lipMidY  = (ul.y + ll.y) / 2;
+    const cornerY  = (lc.y + rc.y) / 2;
+    const elevation = (lipMidY - cornerY) / faceH;
+    // elevation > 0 means corners are above lip midpoint (smile)
+    // typical range: -0.05 (frown) to +0.12 (big smile)
+    const elevScore = Math.max(0, Math.min(1, (elevation + 0.02) / 0.10));
+
+    // Metric 2: mouth width relative to face width
+    const mouthW = Math.abs(rc.x - lc.x);
+    const faceW  = lch && rch ? Math.abs(rch.x - lch.x) : 0.3;
+    const widthRatio = faceW > 0 ? mouthW / faceW : 0;
+    // typical neutral ~0.40, smile ~0.52+
+    const widthScore = Math.max(0, Math.min(1, (widthRatio - 0.36) / 0.18));
+
+    // Metric 3: lip parting (open mouth smile)
+    const lipGap = Math.abs(ll.y - ul.y) / faceH;
+    // neutral ~0.01, open smile ~0.04+
+    const gapScore = Math.max(0, Math.min(1, (lipGap - 0.005) / 0.035));
+
+    // Weighted blend
+    const raw = elevScore * 0.55 + widthScore * 0.30 + gapScore * 0.15;
+    return Math.max(0, Math.min(1, raw));
+  } catch(e) {
+    return 0;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DRAW FACE OVERLAY
+// ═══════════════════════════════════════════════════════════════════
+function drawFaceOverlay(lm, score) {
+  const W = faceCanvas.width, H = faceCanvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  if (!lm || lm.length === 0) return;
+
+  // Map normalized coords to canvas (mirror X)
+  const pt = i => {
+    const l = lm[i];
+    return l ? { x: (1 - l.x) * W, y: l.y * H } : null;
+  };
+
+  const smileColor = score > 0.7 ? '#f59e0b' : score > 0.4 ? '#a78bfa' : '#34d399';
+  const alpha = 0.55 + score * 0.35;
+
+  // Draw face mesh — key contours only (not all 468 — too noisy)
+  const contours = [
+    // Jawline
+    [10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,378,400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,21,54,103,67,109,10],
+    // Left eye
+    [33,7,163,144,145,153,154,155,133,173,157,158,159,160,161,246,33],
+    // Right eye
+    [362,382,381,380,374,373,390,249,263,466,388,387,386,385,384,398,362],
+    // Lips outer
+    [61,185,40,39,37,0,267,269,270,409,291,375,321,405,314,17,84,181,91,146,61],
+    // Lips inner
+    [78,95,88,178,87,14,317,402,318,324,308,415,310,311,312,13,82,81,80,191,78],
+    // Nose
+    [1,2,98,327],
+    // Left brow
+    [70,63,105,66,107,55,65,52,53,46],
+    // Right brow
+    [336,296,334,293,300,285,295,282,283,276],
+  ];
+
+  ctx.save();
+  ctx.strokeStyle = smileColor;
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = alpha * 0.6;
+
+  contours.forEach(contour => {
+    ctx.beginPath();
+    contour.forEach((idx, i) => {
+      const p = pt(idx);
+      if (!p) return;
+      i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+    });
+    ctx.stroke();
+  });
+
+  // Key landmarks as dots
+  const keyPts = [LM.lCorner, LM.rCorner, LM.upperLip, LM.lowerLip, LM.nose, LM.chin, LM.lEye, LM.rEye];
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = smileColor;
+  keyPts.forEach(i => {
+    const p = pt(i);
+    if (!p) return;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Score arc around mouth area
+  const lCorner = pt(LM.lCorner), rCorner = pt(LM.rCorner);
+  if (lCorner && rCorner) {
+    const cx = (lCorner.x + rCorner.x) / 2;
+    const cy = (lCorner.y + rCorner.y) / 2;
+    const r  = Math.abs(rCorner.x - lCorner.x) * 0.9;
+    ctx.globalAlpha = 0.4 + score * 0.5;
+    ctx.strokeStyle = smileColor;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0.1 * Math.PI, 0.9 * Math.PI);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// UPDATE UI
+// ═══════════════════════════════════════════════════════════════════
+function updateUI(rawScore) {
+  // Smooth
+  smoothScore += (rawScore - smoothScore) * SMOOTH_FACTOR;
+  const pct = Math.round(smoothScore * 100);
+
+  // Score badge color
+  const col = pct >= 70 ? 'var(--gold)' : pct >= 40 ? 'var(--purpleL)' : 'var(--greenL)';
+  scoreNum.textContent = pct;
+  scoreNum.style.color = col;
+
+  // History
+  scoreHistory.push(pct);
+  if (scoreHistory.length > 120) scoreHistory.shift();
+  if (pct > peakScore) { peakScore = pct; updateStat('statPeak', peakScore + '%', 'var(--greenL)'); }
+
+  // Smiling?
+  const wasSmiling = smiling;
+  smiling = smoothScore >= SMILE_THRESH;
+
+  smilingBadge.style.display = smiling ? 'block' : 'none';
+  streakRing.style.display   = smiling ? 'block' : 'none';
+  holdWrap.style.display     = smiling ? 'block' : 'none';
+  tapHint.style.display      = smiling ? 'none' : 'block';
+
+  if (smiling) {
+    if (!holdStart) holdStart = Date.now();
+    streakMs = Date.now() - holdStart;
+    totalToothTime += 0.05; // ~50ms ticks
+
+    // Streak ring
+    const streakPct = Math.min(1, streakMs / HOLD_GOAL_MS);
+    const circumference = 144.5;
+    streakArc.style.strokeDashoffset = circumference * (1 - streakPct);
+    streakNum.textContent = (streakMs / 1000).toFixed(1) + 's';
+
+    // Hold bar
+    const hp = Math.round(streakPct * 100);
+    holdFill.style.width = hp + '%';
+    holdPct.textContent = hp + '%';
+
+    // PR!
+    if (streakMs >= HOLD_GOAL_MS && Date.now() - lastPRTime > HOLD_GOAL_MS + 300) {
+      earnPR(pct);
+    }
+  } else {
+    holdStart = null; streakMs = 0;
+    streakArc.style.strokeDashoffset = '144.5';
+    holdFill.style.width = '0%';
+    holdPct.textContent = '0%';
+    streakNum.textContent = '0.0s';
+  }
+
+  // Total tooth time
+  updateStat('statTTT', Math.round(totalToothTime) + 's', 'var(--purpleL)');
+
+  // Draw chart
+  drawChart();
+}
+
+function earnPR(score) {
+  if (prs >= PR_GOAL) return;
+  lastPRTime = Date.now();
+  holdStart = Date.now(); // reset hold
+
+  prs++;
+  const earned = calcWecoin(Math.min(prs, MAX_PRS), 0); // no EAs yet
+  wecoin += Math.round(earned / 100); // small increment per PR; full at end of day
+
+  updateStat('statPRs', prs, 'var(--gold)');
+  updateStat('statGoal', prs + '/' + PR_GOAL, prs >= PR_GOAL ? 'var(--gold)' : 'var(--dim)');
+  document.getElementById('wecoinVal').textContent = wecoin.toLocaleString();
+
+  // Progress
+  const progPct = Math.round((prs / PR_GOAL) * 100);
+  document.getElementById('progFill').style.width = progPct + '%';
+  document.getElementById('progPct').textContent = progPct + '%';
+  document.getElementById('progSub').textContent = prs >= PR_GOAL
+    ? '🏆 AM Bootup complete! Flow state primed.'
+    : `${PR_GOAL - prs} more PRs to complete AM Bootup`;
+
+  // Log entry
+  addLog(score);
+
+  // Flash
+  showPRFlash();
+
+  // Chart visible after first PR
+  document.getElementById('chartPanel').style.display = 'block';
+}
+
+function calcWecoin(pr, ea) {
+  const p = Math.min(pr, MAX_PRS), e = Math.min(ea, MAX_EAS);
+  return p * Math.max(1, e) * Math.pow(2, Math.max(1, e));
+}
+
+function showPRFlash() {
+  const flash = document.getElementById('prFlash');
+  const label = document.getElementById('prLabel');
+  flash.classList.add('pr-flash-active');
+  label.classList.add('pr-flash-active');
+  clearTimeout(prFlashTimeout);
+  prFlashTimeout = setTimeout(() => {
+    flash.classList.remove('pr-flash-active');
+    label.classList.remove('pr-flash-active');
+  }, 700);
+}
+
+function addLog(score) {
+  document.getElementById('noLog').style.display = 'none';
+  const elapsed = Math.round((Date.now() - sessionStart) / 1000);
+  const mins = Math.floor(elapsed / 60), secs = elapsed % 60;
+  const timeStr = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  const icon = score >= 80 ? '🌟' : score >= 60 ? '😄' : '🙂';
+  const entry = document.createElement('div');
+  entry.className = 'log-item';
+  entry.innerHTML = `
+    <div class="log-icon">${icon}</div>
+    <div class="log-text"><strong>PR #${prs}</strong> · Score ${score}% · ${Math.round(streakMs/100)/10}s hold</div>
+    <div class="log-score" style="color:${score>=70?'var(--gold)':'var(--purpleL)'}">${score}%</div>
+    <div class="log-time">${timeStr}</div>
+  `;
+  document.getElementById('logBody').prepend(entry);
+}
+
+function updateStat(id, val, color) {
+  const el = document.getElementById(id);
+  el.textContent = val;
+  if (color) el.style.color = color;
+}
+
+function drawChart() {
+  const canvas = document.getElementById('scoreChart');
+  if (!chartCtx) chartCtx = canvas.getContext('2d');
+  const W = canvas.offsetWidth, H = 44;
+  canvas.width = W;
+  ctx2 = chartCtx;
+  ctx2.clearRect(0, 0, W, H);
+
+  const hist = scoreHistory.slice(-60);
+  if (hist.length < 2) return;
+
+  const barW = W / hist.length;
+  hist.forEach((s, i) => {
+    const bh = Math.max(2, (s / 100) * H);
+    const color = s >= 70 ? '#f59e0b' : s >= 40 ? '#a78bfa' : '#34d399';
+    ctx2.fillStyle = color;
+    ctx2.globalAlpha = 0.75;
+    ctx2.beginPath();
+    ctx2.roundRect(i * barW + 0.5, H - bh, barW - 1, bh, 1);
+    ctx2.fill();
+  });
+  ctx2.globalAlpha = 1;
+
+  // Threshold line
+  ctx2.strokeStyle = 'rgba(245,158,11,.25)';
+  ctx2.lineWidth = 1;
+  ctx2.setLineDash([3, 3]);
+  const threshY = H - (SMILE_THRESH * H);
+  ctx2.beginPath();
+  ctx2.moveTo(0, threshY);
+  ctx2.lineTo(W, threshY);
+  ctx2.stroke();
+  ctx2.setLineDash([]);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SIMULATION MODE (no camera)
+// ═══════════════════════════════════════════════════════════════════
+function startSim() {
+  mode = 'sim';
+  statusDot.className = 'sim';
+  simCanvas.style.display = 'block';
+  loadOverlay.style.display = 'none';
+  scoreBadge.style.display = 'flex';
+  tapHint.style.display = 'block';
+
+  const sctx = simCanvas.getContext('2d');
+
+  simTick = setInterval(() => {
+    simPhase += 0.04;
+    const W = simCanvas.width, H = simCanvas.height;
+    sctx.clearRect(0, 0, W, H);
+
+    // Animated face silhouette
+    const cx = W / 2, cy = H / 2;
+    const fw = Math.min(W, H) * 0.38;
+
+    // Face oval
+    sctx.save();
+    sctx.strokeStyle = '#242436';
+    sctx.lineWidth = 2;
+    sctx.beginPath();
+    sctx.ellipse(cx, cy, fw * 0.65, fw * 0.85, 0, 0, Math.PI * 2);
+    sctx.stroke();
+
+    // Animated smile score (oscillates between 0.1 and 0.85)
+    const simScore = 0.45 + Math.sin(simPhase * 0.7) * 0.38;
+    const smileAmt = Math.max(0, simScore);
+
+    // Eyes
+    [cx - fw * 0.22, cx + fw * 0.22].forEach(ex => {
+      sctx.beginPath();
+      sctx.ellipse(ex, cy - fw * 0.18, fw * 0.07, fw * 0.09, 0, 0, Math.PI * 2);
+      sctx.strokeStyle = '#545474';
+      sctx.stroke();
+    });
+
+    // Animated mouth
+    const mouthY  = cy + fw * 0.22;
+    const mouthW  = fw * 0.35 + smileAmt * fw * 0.15;
+    const curvature = smileAmt * fw * 0.28;
+    const smileColor = smileAmt > 0.7 ? '#f59e0b' : smileAmt > 0.4 ? '#a78bfa' : '#545474';
+
+    sctx.beginPath();
+    sctx.moveTo(cx - mouthW, mouthY);
+    sctx.quadraticCurveTo(cx, mouthY + curvature, cx + mouthW, mouthY);
+    sctx.strokeStyle = smileColor;
+    sctx.lineWidth = 2.5;
+    sctx.stroke();
+
+    // Corner dots
+    sctx.fillStyle = smileColor;
+    [[cx - mouthW, mouthY], [cx + mouthW, mouthY]].forEach(([x, y]) => {
+      sctx.beginPath(); sctx.arc(x, y, 3, 0, Math.PI * 2); sctx.fill();
+    });
+
+    sctx.restore();
+
+    updateUI(simScore);
+  }, 50);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MEDIAPIPE FACE MESH INIT
+// ═══════════════════════════════════════════════════════════════════
+async function initFaceMesh() {
+  // Check MediaPipe available
+  if (typeof window.FaceMesh === 'undefined') {
+    console.warn('FaceMesh not available, starting sim');
+    startSim();
+    return;
+  }
+
+  // Request camera
+  let stream;
+  try {
+    loadStep.textContent = 'Requesting camera permission…';
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: 'user',
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+      },
+      audio: false,
+    });
+  } catch(e) {
+    console.warn('Camera denied:', e);
+    loadStep.textContent = 'Camera denied — starting simulation…';
+    setTimeout(startSim, 800);
+    return;
+  }
+
+  videoEl.srcObject = stream;
+  await videoEl.play();
+
+  loadStep.textContent = 'Loading face mesh model…';
+
+  try {
+    const mesh = new window.FaceMesh({
+      locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`
+    });
+
+    mesh.setOptions({
+      maxNumFaces: 1,
+      refineLandmarks: true,
+      minDetectionConfidence: 0.55,
+      minTrackingConfidence: 0.55,
+    });
+
+    let frameCount = 0;
+    mesh.onResults(results => {
+      const W = faceCanvas.width, H = faceCanvas.height;
+
+      // Draw video (mirrored)
+      ctx.save();
+      ctx.clearRect(0, 0, W, H);
+      ctx.scale(-1, 1);
+      ctx.translate(-W, 0);
+      if (results.image) ctx.drawImage(results.image, 0, 0, W, H);
+      ctx.restore();
+
+      if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
+        const lm = results.multiFaceLandmarks[0];
+        const rawScore = getSmileScore(lm);
+        drawFaceOverlay(lm, rawScore);
+        updateUI(rawScore);
+      } else {
+        // No face detected — decay score toward 0
+        updateUI(smoothScore * 0.85);
+      }
+
+      frameCount++;
+      if (frameCount === 1) {
+        // First frame received — hide loading
+        loadOverlay.style.display = 'none';
+        scoreBadge.style.display = 'flex';
+        tapHint.style.display = 'block';
+        statusDot.className = 'live';
+        mode = 'live';
+      }
+    });
+
+    faceMesh = mesh;
+
+    const camera = new window.Camera(videoEl, {
+      onFrame: async () => {
+        if (faceMesh) {
+          try { await faceMesh.send({ image: videoEl }); } catch(e) {}
+        }
+      },
+      width: 640, height: 480,
+    });
+
+    await camera.start();
+    cameraInst = camera;
+
+    // Timeout: if no frame in 8s, fall back to sim
+    const fbTimeout = setTimeout(() => {
+      if (mode === 'loading') {
+        console.warn('Face mesh timeout, starting sim');
+        startSim();
+      }
+    }, 8000);
+
+    mesh.onResults = (results) => {
+      clearTimeout(fbTimeout);
+      // re-assign the real handler
+      mesh.onResults = null; // remove self-reassign
+      // ... handled above via closure
+    };
+
+    // Actually we need to keep the handler — redo cleanly
+    faceMesh.onResults(results => {}); // no-op to clear
+    let firstFrame = true;
+    faceMesh = mesh;
+    faceMesh.onResults = results => {
+      const W = faceCanvas.width, H = faceCanvas.height;
+      ctx.save();
+      ctx.clearRect(0, 0, W, H);
+      ctx.scale(-1, 1); ctx.translate(-W, 0);
+      if (results.image) ctx.drawImage(results.image, 0, 0, W, H);
+      ctx.restore();
+
+      if (firstFrame) {
+        clearTimeout(fbTimeout);
+        firstFrame = false;
+        loadOverlay.style.display = 'none';
+        scoreBadge.style.display = 'flex';
+        tapHint.style.display = 'block';
+        statusDot.className = 'live';
+        mode = 'live';
+      }
+
+      if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
+        const lm = results.multiFaceLandmarks[0];
+        const rawScore = getSmileScore(lm);
+        drawFaceOverlay(lm, rawScore);
+        updateUI(rawScore);
+      } else {
+        updateUI(smoothScore * 0.85);
+      }
+    };
+
+  } catch(e) {
+    console.warn('FaceMesh init error:', e);
+    loadStep.textContent = 'Face mesh failed — starting simulation…';
+    setTimeout(startSim, 800);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════
+checkProtocol();
+resizeCanvas();
+initFaceMesh();
+</script>
+
+</body>
+</html>
