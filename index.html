@@ -1,1066 +1,1498 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
-<title>SmileTracker · ANAGAGE</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MovePR · ANAGAGE</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-:root {
-  --bg:      #04040a;
-  --surf:    #080810;
-  --card:    #0c0c18;
-  --card2:   #101020;
-  --bdr:     #181828;
-  --bdr2:    #242436;
-  --txt:     #e4e0f4;
-  --dim:     #545474;
-  --dim2:    #2c2c44;
-  --gold:    #f59e0b;
-  --goldL:   #fcd34d;
-  --goldD:   #92400e;
-  --green:   #10b981;
-  --greenL:  #34d399;
-  --purple:  #7c3aed;
-  --purpleL: #a78bfa;
-  --blue:    #3b82f6;
-  --red:     #ef4444;
-  --pink:    #ec4899;
-  --sans:    'Space Grotesk', sans-serif;
-  --mono:    'JetBrains Mono', monospace;
-  --display: 'Bebas Neue', sans-serif;
+:root{
+  --bg:#05050a;--surf:#0b0b14;--card:#0f0f1a;--card2:#141422;
+  --bdr:#1c1c2e;--bdr2:#2a2a42;--txt:#e0ddf0;--dim:#5a5a80;--dim2:#3a3a58;
+  --purple:#7c3aed;--purpleL:#a78bfa;--green:#10b981;--greenL:#34d399;
+  --amber:#f59e0b;--amberL:#fcd34d;--blue:#3b82f6;--blueL:#93c5fd;
+  --red:#ef4444;--pink:#ec4899;--cyan:#06b6d4;--gold:#f59e0b;
+  --mono:'JetBrains Mono',monospace;--sans:'Space Grotesk',sans-serif;--display:'Bebas Neue',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:var(--sans)}
+#nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--surf);border-top:1px solid var(--bdr);z-index:100}
+.nav-btn{flex:1;padding:10px 0;border:none;background:none;color:var(--dim);font-family:var(--sans);font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:color .15s}
+.nav-btn svg{width:18px;height:18px;stroke-width:1.5}
+.nav-btn.active{color:var(--purpleL)}
+.screen{display:none;height:calc(100vh - 44px);overflow-y:auto;overflow-x:hidden;position:relative}
+.screen.active{display:block}
 
-/* ── LAYOUT ── */
-#app{
-height:100vh;display:flex;flex-direction:column;
-max-width:480px;margin:0 auto;position:relative;
-}
+/* HOME */
+#home{padding:14px 14px 0}
+.home-header{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:12px 14px;background:var(--card);border:1px solid var(--bdr);border-radius:14px}
+.logo-mark{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--purple),var(--cyan));display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:18px;color:#fff;flex-shrink:0}
+.home-title{font-family:var(--display);font-size:22px;letter-spacing:.05em}
+.home-sub{font-size:9px;color:var(--dim);letter-spacing:.12em;margin-top:2px}
+.stat-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat-pill{background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:10px 12px;text-align:center}
+.stat-v{font-family:var(--display);font-size:24px;letter-spacing:.03em}
+.stat-l{font-size:8px;color:var(--dim);letter-spacing:.1em;margin-top:2px}
+.routine-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;padding-bottom:14px}
+.rcard{background:var(--card);border:1px solid var(--bdr);border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .12s,border-color .12s}
+.rcard:hover{transform:translateY(-2px);border-color:var(--bdr2)}
+.rcard-bar{height:3px;width:100%}
+.rcard-body{padding:12px}
+.rcard-pr{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:var(--card2);border-radius:6px;font-size:10px;margin-top:6px}
 
-/* ── HEADER ── */
-#header{
-display:flex;align-items:center;justify-content:space-between;
-padding:12px 16px 8px;background:var(–surf);
-border-bottom:1px solid var(–bdr);flex-shrink:0;
-}
-.logo{display:flex;align-items:center;gap:10px}
-.logo-mark{
-width:34px;height:34px;border-radius:9px;flex-shrink:0;
-background:linear-gradient(135deg,var(–gold),var(–pink));
-display:flex;align-items:center;justify-content:center;
-font-size:18px;
-}
-.logo-text{font-family:var(–display);font-size:20px;letter-spacing:.05em;color:var(–txt);line-height:1}
-.logo-sub{font-size:8px;color:var(–dim);letter-spacing:.14em;margin-top:2px}
-.header-right{text-align:right}
-.wecoin-val{font-family:var(–display);font-size:22px;letter-spacing:.04em;color:var(–gold)}
-.wecoin-lbl{font-size:7px;color:var(–dim);letter-spacing:.14em}
-
-/* ── CAM WRAP ── */
-#camWrap{
-position:relative;flex:1;background:#02020a;
-display:flex;align-items:center;justify-content:center;
-overflow:hidden;min-height:0;
-}
-#video{
-position:absolute;inset:0;width:100%;height:100%;
-object-fit:cover;transform:scaleX(-1);opacity:0;
-}
-#faceCanvas{
-position:absolute;inset:0;width:100%;height:100%;
-object-fit:cover;
-}
-
-/* Overlays */
-#loadingOverlay{
-position:absolute;inset:0;background:var(–bg);
-display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
-z-index:10;
-}
-.spinner{
-width:44px;height:44px;border-radius:50%;
-border:2px solid var(–bdr2);border-top-color:var(–gold);
-animation:spin 1s linear infinite;
-}
+/* PRACTICE */
+#practice{padding:0;position:relative}
+.prac-header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surf);border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:10}
+.back-btn{background:none;border:1px solid var(--bdr);color:var(--dim);border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:var(--sans)}
+.prac-body{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 88px - 44px)}
+.cam-side{position:relative;background:#02020a;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#userVideo{display:none;width:100%;height:100%;object-fit:cover}
+#poseCanvas{width:100%;height:100%;object-fit:cover}
+.cam-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.load-ring{width:44px;height:44px;border-radius:50%;border:2px solid var(--bdr);border-top-color:var(--purpleL);animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.load-msg{font-size:12px;color:var(–dim);letter-spacing:.1em;text-align:center;line-height:1.8}
-.load-sub{font-size:10px;color:var(–dim2);letter-spacing:.06em}
+.cd-num{font-family:var(--display);font-size:90px;letter-spacing:.02em;text-shadow:0 0 40px currentColor}
+.live-badge{position:absolute;bottom:54px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);border:1px solid var(--bdr);border-radius:12px;padding:8px 16px;text-align:center;display:none}
+.live-val{font-family:var(--display);font-size:28px}
+.cam-lbl{position:absolute;top:10px;right:10px;font-size:8px;letter-spacing:.14em;color:var(--dim);background:rgba(0,0,0,.6);padding:3px 8px;border-radius:4px}
+.sim-badge{position:absolute;top:10px;right:10px;font-size:8px;color:var(--amber);background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);padding:3px 8px;border-radius:4px;display:none}
+#googlyBtn{position:absolute;top:8px;left:8px;z-index:15;padding:5px 11px;border-radius:20px;font-size:12px;font-weight:800;cursor:pointer;background:rgba(8,8,20,.75);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.15);transition:all .15s;line-height:1}
+.target-side{position:relative;background:linear-gradient(135deg,#080614,#050510);border-left:1px solid var(--bdr);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px}
+.pose-dots{display:flex;gap:4px;margin-top:4px}
+.pose-dot{height:3px;border-radius:2px;background:var(--bdr);transition:width .2s}
+.beat-bar{display:flex;align-items:center;gap:8px;padding:0 12px;height:40px;background:var(--surf);border-top:1px solid var(--bdr)}
+.beat-pulse{width:8px;height:8px;border-radius:50%;background:var(--purpleL);flex-shrink:0;transition:transform .05s}
+.beat-tl{flex:1;height:24px;position:relative;overflow:hidden}
+.beat-tick{position:absolute;top:0;bottom:0;width:2px;background:var(--bdr2)}
+.beat-tick.hit{background:var(--greenL)}
+.beat-tick.miss{background:var(--red)}
+.beat-tick.on{background:var(--purpleL);box-shadow:0 0 6px var(--purpleL)}
+.done-panel{position:absolute;inset:0;background:rgba(5,5,10,.95);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;z-index:20}
+.done-panel.vis{display:flex}
+.score-row{display:flex;gap:16px}
+.score-box{text-align:center;padding:14px 18px;background:var(--card);border:1px solid var(--bdr);border-radius:12px;min-width:90px}
+.score-box-v{font-family:var(--display);font-size:38px;letter-spacing:.05em}
+.score-box-l{font-size:8px;color:var(--dim);letter-spacing:.12em;margin-top:3px}
+.done-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.btn-p{padding:11px 22px;border-radius:10px;border:none;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:12px;background:var(--purple);color:#fff;transition:opacity .15s}
+.btn-s{padding:11px 22px;border-radius:10px;border:1px solid var(--bdr);cursor:pointer;font-family:var(--sans);font-weight:600;font-size:12px;background:var(--card);color:var(--txt)}
 
-/* Score badge — center overlay */
-#scoreBadge{
-position:absolute;top:12px;left:50%;transform:translateX(-50%);
-background:rgba(4,4,10,.85);border:1px solid var(–bdr2);
-border-radius:14px;padding:8px 18px;
-display:none;flex-direction:column;align-items:center;
-backdrop-filter:blur(8px);
-}
-.score-label{font-size:8px;color:var(–dim);letter-spacing:.16em}
-.score-num{
-font-family:var(–display);font-size:42px;letter-spacing:.03em;
-line-height:1;margin-top:2px;transition:color .15s;
-}
-.score-unit{font-size:10px;color:var(–dim);letter-spacing:.1em}
+/* REMIX */
+#remix{padding:14px}
+.remix-hdr{margin-bottom:12px}
+.remix-title{font-family:var(--display);font-size:26px;letter-spacing:.05em;color:var(--purpleL)}
+.remix-controls{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.bpm-ctrl{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:7px 12px}
+.bpm-v{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--purpleL);min-width:30px;text-align:center}
+.bpm-btn{background:none;border:1px solid var(--bdr);color:var(--txt);border-radius:5px;width:22px;height:22px;cursor:pointer;font-size:13px}
+.remix-stage{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.remix-panel{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:12px;display:flex;flex-direction:column;align-items:center}
+.remix-panel-title{font-size:9px;letter-spacing:.14em;margin-bottom:8px;align-self:flex-start}
+.sync-tl{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:12px;margin-bottom:10px}
+.beat-map{display:flex;gap:2px;height:46px;align-items:flex-end}
+.beat-col{flex:1;display:flex;flex-direction:column;gap:2px;align-items:center;position:relative}
+.beat-block{width:100%;border-radius:2px;min-height:4px}
+.beat-label{font-size:6px;color:var(--dim);position:absolute;bottom:-14px;white-space:nowrap}
+.sync-scores{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:12px;margin-bottom:10px}
+.sync-row{display:flex;gap:10px;margin-top:8px}
+.sync-m{flex:1;text-align:center;padding:8px;background:var(--card2);border-radius:8px}
+.sync-v{font-family:var(--display);font-size:24px;letter-spacing:.05em}
+.sync-l{font-size:8px;color:var(--dim);letter-spacing:.1em;margin-top:2px}
+.whatif-panel{background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(6,182,212,.06));border:1px solid rgba(124,58,237,.3);border-radius:12px;padding:14px}
+.whatif-title{font-family:var(--display);font-size:16px;letter-spacing:.05em;color:var(--purpleL);margin-bottom:6px}
 
-/* Smiling badge */
-#smilingBadge{
-position:absolute;top:12px;right:12px;
-background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(236,72,153,.2));
-border:1px solid rgba(245,158,11,.5);
-border-radius:20px;padding:5px 14px;
-font-size:11px;font-weight:600;letter-spacing:.08em;color:var(–goldL);
-display:none;animation:glow 1.4s ease infinite alternate;
-}
-@keyframes glow{from{box-shadow:0 0 8px rgba(245,158,11,.3)}to{box-shadow:0 0 20px rgba(245,158,11,.6)}}
+/* DASHBOARD */
+#dashboard{padding:0;position:relative}
+.db-gate{position:absolute;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:32px}
+.db-gate.hidden{display:none}
+.db-content{height:100%;overflow-y:auto;display:none}
+.db-content.vis{display:block}
+.db-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 6px;flex-shrink:0}
+.db-title{font-family:var(--display);font-size:26px;letter-spacing:.05em}
+.db-sub{font-size:9px;color:var(--dim);letter-spacing:.1em;margin-top:2px}
+.tab-row{display:flex;gap:5px;padding:6px 14px;overflow-x:auto;flex-shrink:0;border-bottom:1px solid var(--bdr)}
+.tab-row::-webkit-scrollbar{height:0}
+.db-tab{padding:5px 12px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.05em;border:1px solid var(--bdr);background:var(--card);color:var(--dim);cursor:pointer;white-space:nowrap;transition:all .15s;font-family:var(--sans)}
+.db-tab.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+.db-panel{display:none;padding:12px 14px}
+.db-panel.active{display:block}
+.chart-card{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:12px;margin-bottom:10px}
+.cc-title{font-size:9px;letter-spacing:.14em;color:var(--dim);margin-bottom:4px}
+.cc-sub{font-size:10px;color:var(--txt);margin-bottom:10px;line-height:1.5}
+.ig{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}
+.ic{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:10px}
+.ic-lbl{font-size:8px;color:var(--dim);letter-spacing:.12em;margin-bottom:5px}
+.ic-val{font-family:var(--display);font-size:24px;letter-spacing:.05em}
+.ic-d{font-size:9px;margin-top:2px}
+.ph-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:20px;font-size:8px;letter-spacing:.08em;font-weight:600;margin-bottom:6px}
 
-/* Streak ring */
-#streakRing{
-position:absolute;left:12px;top:12px;
-width:54px;height:54px;display:none;
-}
-#streakRing svg{width:54px;height:54px}
-#streakVal{
-position:absolute;inset:0;display:flex;flex-direction:column;
-align-items:center;justify-content:center;
-}
-.streak-num{font-family:var(–display);font-size:14px;letter-spacing:.03em;color:var(–gold);line-height:1}
-.streak-lbl{font-size:6px;color:var(–dim);letter-spacing:.1em}
+/* MINE TAB */
+.mine-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.mine-stat{background:var(--card2);border:1px solid var(--bdr);border-radius:10px;padding:10px;text-align:center}
+.mine-stat-v{font-family:var(--display);font-size:22px;letter-spacing:.04em}
+.mine-stat-l{font-size:8px;color:var(--dim);letter-spacing:.1em;margin-top:2px}
 
-/* Hold bar */
-#holdWrap{
-position:absolute;bottom:0;left:0;right:0;
-padding:0 16px 6px;display:none;
-}
-#holdTrack{
-height:6px;background:var(–bdr2);border-radius:3px;overflow:hidden;
-}
-#holdFill{
-height:100%;width:0%;border-radius:3px;
-background:linear-gradient(90deg,var(–gold),var(–pink));
-transition:width .08s linear;
-}
-.hold-labels{
-display:flex;justify-content:space-between;
-font-size:7px;color:var(–dim);letter-spacing:.1em;margin-top:3px;
-}
+/* SMILE TAB */
+.smile-cam{position:relative;background:#02020a;border-radius:12px;overflow:hidden;height:200px;margin-bottom:10px}
+.smile-cam canvas{width:100%;height:100%;object-fit:cover}
+.smile-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.smile-score-badge{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.8);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:6px 12px;text-align:center;display:none}
+.smile-hold-bar{position:absolute;bottom:6px;left:8px;right:8px;display:none}
+.hold-track{height:5px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
+.hold-fill{height:100%;width:0%;background:linear-gradient(90deg,#f59e0b,#ec4899);border-radius:3px;transition:width .08s linear}
 
-/* PR flash */
-#prFlash{
-position:absolute;inset:0;
-background:radial-gradient(ellipse at center, rgba(245,158,11,.35) 0%, transparent 70%);
-pointer-events:none;opacity:0;transition:opacity .08s;z-index:20;
-}
-#prLabel{
-position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.5);
-font-family:var(–display);font-size:72px;letter-spacing:.05em;
-color:var(–goldL);text-shadow:0 0 40px rgba(245,158,11,.8);
-pointer-events:none;opacity:0;transition:opacity .12s,transform .2s;z-index:21;
-}
-.pr-flash-active#prFlash{opacity:1}
-.pr-flash-active#prLabel{opacity:1;transform:translate(-50%,-50%) scale(1)}
+/* BREATH TAB */
+.breath-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.breath-stat{background:var(--card2);border:1px solid var(--bdr);border-radius:10px;padding:10px;text-align:center}
+.breath-stat-v{font-family:var(--display);font-size:20px;letter-spacing:.04em}
+.breath-stat-l{font-size:8px;color:var(--dim);letter-spacing:.1em;margin-top:2px}
+.tech-btns{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.tech-btn{padding:5px 11px;border-radius:20px;font-size:10px;font-weight:600;border:1px solid var(--bdr);background:var(--card);color:var(--dim);cursor:pointer;transition:all .15s;font-family:var(--sans)}
+.tech-btn.active{background:var(--green);color:#000;border-color:var(--green)}
+.breath-guide{text-align:center;padding:14px;border-radius:12px;background:var(--card2);border:1px solid var(--bdr);margin-bottom:10px}
+.breath-phase-lbl{font-family:var(--display);font-size:28px;letter-spacing:.05em}
+.breath-countdown{font-family:var(--display);font-size:52px;line-height:1;margin:5px 0}
+.breath-prog-track{width:100%;height:6px;background:var(--bdr2);border-radius:3px;overflow:hidden;margin-top:8px}
+.breath-prog-fill{height:100%;width:0%;border-radius:3px;transition:width .1s linear}
+.spectrogram{width:100%;height:75px;display:block;border-radius:6px;background:#020208}
+.congestion-legend{display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:7px;font-size:9px}
 
-/* ── STATS STRIP ── */
-#statsStrip{
-display:grid;grid-template-columns:repeat(4,1fr);
-background:var(–surf);border-top:1px solid var(–bdr);
-flex-shrink:0;
-}
-.stat-cell{
-padding:9px 6px;text-align:center;
-border-right:1px solid var(–bdr);
-}
-.stat-cell:last-child{border-right:none}
-.stat-val{
-font-family:var(–display);font-size:22px;letter-spacing:.03em;
-line-height:1;
-}
-.stat-lbl{font-size:7px;color:var(–dim);letter-spacing:.1em;margin-top:2px}
+/* CALENDAR / NEXT TAB */
+.cal-section{margin-bottom:12px}
+.cal-section-title{font-size:9px;letter-spacing:.14em;color:var(--dim);margin-bottom:8px}
+.task-card{background:var(--card2);border:1px solid var(--bdr);border-radius:10px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s}
+.task-card:hover{border-color:var(--bdr2)}
+.task-card.done{opacity:.45}
+.task-check{width:18px;height:18px;border-radius:50%;border:2px solid var(--bdr2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.task-check.checked{background:var(--green);border-color:var(--green)}
+.task-body{flex:1}
+.task-title{font-size:12px;font-weight:600}
+.task-meta{font-size:9px;color:var(--dim);margin-top:2px}
+.task-priority{font-size:8px;font-weight:700;letter-spacing:.1em;padding:2px 7px;border-radius:10px;flex-shrink:0}
+.p-urgent{background:rgba(239,68,68,.15);color:var(--red)}
+.p-high{background:rgba(245,158,11,.15);color:var(--amber)}
+.p-med{background:rgba(59,130,246,.15);color:var(--blue)}
+.p-low{background:rgba(90,90,128,.15);color:var(--dim)}
+.add-task-form{background:var(--card);border:1px solid var(--bdr2);border-radius:12px;padding:12px;margin-bottom:10px}
+.task-input{width:100%;padding:9px;border-radius:8px;background:var(--card2);border:1px solid var(--bdr);color:var(--txt);font-family:var(--sans);font-size:12px;outline:none;margin-bottom:8px}
+.task-row{display:flex;gap:6px;align-items:center}
+.task-select{padding:7px;border-radius:8px;background:var(--card2);border:1px solid var(--bdr);color:var(--txt);font-family:var(--sans);font-size:11px;outline:none;cursor:pointer}
+.cal-score{display:flex;gap:10px;margin-bottom:10px}
+.cal-score-pill{flex:1;text-align:center;padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:10px}
+.cal-score-v{font-family:var(--display);font-size:26px;letter-spacing:.05em}
+.cal-score-l{font-size:8px;color:var(--dim);letter-spacing:.1em;margin-top:2px}
+.momentum-chart{width:100%;height:55px;display:block}
 
-/* ── PROGRESS ── */
-#progressWrap{
-background:var(–surf);border-top:1px solid var(–bdr);
-padding:8px 16px;flex-shrink:0;
-}
-.prog-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
-.prog-title{font-size:9px;color:var(–dim);letter-spacing:.12em}
-.prog-pct{font-family:var(–mono);font-size:11px;font-weight:700;color:var(–gold)}
-#progTrack{height:5px;background:var(–bdr2);border-radius:3px;overflow:hidden}
-#progFill{
-height:100%;width:0%;border-radius:3px;
-background:linear-gradient(90deg,var(–gold),var(–pink));
-transition:width .4s ease;
-}
-.prog-sub{font-size:9px;color:var(–dim);margin-top:4px;letter-spacing:.04em}
-
-/* ── LOG ── */
-#logWrap{
-background:var(–surf);border-top:1px solid var(–bdr);
-flex:0 0 auto;max-height:140px;overflow-y:auto;
-}
-#logTitle{
-padding:7px 16px 4px;font-size:8px;color:var(–dim);
-letter-spacing:.14em;position:sticky;top:0;
-background:var(–surf);border-bottom:1px solid var(–bdr);
-}
-#logBody{padding:4px 0}
-.log-item{
-display:flex;align-items:center;gap:10px;
-padding:5px 16px;border-bottom:1px solid var(–bdr);
-animation:slideIn .2s ease;
-}
-@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
-.log-icon{font-size:14px;flex-shrink:0}
-.log-text{flex:1;font-size:10px;color:var(–dim);line-height:1.4}
-.log-text strong{color:var(–txt)}
-.log-score{
-font-family:var(–mono);font-size:11px;font-weight:700;flex-shrink:0;
-}
-.log-time{font-size:8px;color:var(–dim2);flex-shrink:0}
-#noLog{padding:10px 16px;font-size:10px;color:var(–dim2);font-style:italic}
-
-/* ── CHART PANEL ── */
-#chartPanel{
-background:var(–surf);border-top:1px solid var(–bdr);
-padding:8px 16px;flex-shrink:0;display:none;
-}
-.chart-title{font-size:8px;color:var(–dim);letter-spacing:.12em;margin-bottom:6px}
-#scoreChart{width:100%;height:44px;display:block}
-
-/* ── PROTOCOL BANNER ── */
-#protoBanner{
-display:none;position:fixed;top:0;left:0;right:0;z-index:200;
-background:linear-gradient(135deg,#120800,#080000);
-border-bottom:2px solid var(–gold);
-padding:12px 14px;flex-direction:column;gap:10px;
-max-height:75vh;overflow-y:auto;
-}
-.proto-close{
-position:absolute;top:10px;right:12px;
-background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);
-color:var(–goldL);border-radius:6px;padding:3px 9px;
-cursor:pointer;font-size:11px;font-family:var(–sans);
-}
-.proto-heading{font-size:12px;color:var(–goldL);font-weight:600;line-height:1.5;padding-right:60px}
-.proto-note{font-size:9px;color:var(–dim);margin-top:2px}
-.proto-options{display:flex;flex-direction:column;gap:6px;margin-top:4px}
-.proto-opt{
-display:flex;gap:10px;align-items:flex-start;
-background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.12);
-border-radius:8px;padding:8px 10px;
-}
-.proto-badge{
-font-size:7px;font-weight:700;letter-spacing:.1em;color:var(–gold);
-background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);
-border-radius:4px;padding:2px 6px;white-space:nowrap;flex-shrink:0;margin-top:1px;
-}
-.proto-txt{font-size:10px;color:var(–dim);line-height:1.6}
-.proto-txt strong{color:var(–txt)}
-.proto-txt code{
-background:rgba(255,255,255,.05);border:1px solid var(–bdr);
-border-radius:3px;padding:1px 5px;font-family:var(–mono);font-size:9px;color:var(–purpleL);
-}
-.proto-txt a{color:var(–purpleL);text-decoration:none}
-
-/* ── MISC ── */
-#tapHint{
-position:absolute;bottom:52px;left:50%;transform:translateX(-50%);
-font-size:9px;color:rgba(255,255,255,.18);letter-spacing:.1em;
-pointer-events:none;white-space:nowrap;display:none;
-}
-::-webkit-scrollbar{width:2px}
-::-webkit-scrollbar-track{background:var(–bg)}
-::-webkit-scrollbar-thumb{background:var(–bdr2);border-radius:2px}
-
-/* Sim mode */
-#simCanvas{position:absolute;inset:0;width:100%;height:100%;display:none}
-
-/* Status dot */
-#statusDot{
-width:6px;height:6px;border-radius:50%;background:var(–dim);
-flex-shrink:0;margin-left:4px;
-}
-#statusDot.live{background:var(–green);box-shadow:0 0 6px var(–green)}
-#statusDot.sim{background:var(–gold);box-shadow:0 0 6px var(–gold)}
+/* MISC */
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:4px}
+#flash{position:fixed;inset:0;pointer-events:none;z-index:999;background:rgba(167,139,250,.15);opacity:0;transition:opacity .1s}
+.pw-input{width:100%;max-width:280px;padding:12px 16px;border-radius:12px;font-size:14px;background:var(--card);border:1px solid var(--bdr2);color:var(--txt);font-family:var(--mono);text-align:center;letter-spacing:.1em;outline:none}
+.pw-input:focus{border-color:var(--purpleL)}
+.unlock-btn{padding:12px 32px;border-radius:12px;border:none;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:13px;background:var(--purple);color:#fff;letter-spacing:.04em}
+.lock-btn{background:var(--card);border:1px solid var(--bdr);color:var(--dim);border-radius:8px;padding:4px 10px;font-size:10px;cursor:pointer;font-family:var(--sans)}
+.log-scroll{max-height:140px;overflow-y:auto;font-size:10px;color:var(--dim)}
+.log-item{padding:4px 0;border-bottom:1px solid var(--bdr)}
 </style>
-
 </head>
 <body>
-<div id="app">
 
-  <!-- Header -->
+<!-- SCREENS -->
+<div id="home" class="screen active"><div id="homeContent"></div></div>
 
-  <div id="header">
-    <div class="logo">
-      <div class="logo-mark">☺</div>
-      <div>
-        <div class="logo-text">SMILETRACKER</div>
-        <div class="logo-sub">ANAGAGE · AM BOOTUP <span id="statusDot"></span></div>
+<!-- PRACTICE -->
+<div id="practice" class="screen">
+  <div class="prac-header">
+    <button class="back-btn" onclick="goHome()">← Back</button>
+    <span id="pracTitle" style="font-weight:600;font-size:13px"></span>
+    <div id="sesTimer" style="margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim)"></div>
+  </div>
+  <div class="prac-body">
+    <div class="cam-side">
+      <video id="userVideo" autoplay playsinline muted></video>
+      <canvas id="poseCanvas" width="480" height="480"></canvas>
+      <div id="camOvr" class="cam-overlay">
+        <div class="load-ring"></div>
+        <p style="margin-top:12px;font-size:11px;color:var(--dim);letter-spacing:.08em">LOADING POSE ENGINE</p>
+      </div>
+      <div id="cdOvr" class="cam-overlay" style="display:none;background:rgba(5,5,10,.7)">
+        <div id="cdNum" class="cd-num" style="color:var(--purpleL)">3</div>
+        <div style="font-size:13px;margin-top:8px">Get ready!</div>
+      </div>
+      <div id="liveBadge" class="live-badge">
+        <div class="live-val" id="liveVal" style="color:var(--green)">--</div>
+        <div style="font-size:8px;color:var(--dim);letter-spacing:.12em">MATCH SCORE</div>
+      </div>
+      <div class="cam-lbl" id="camLbl">YOUR CAMERA</div>
+      <div class="sim-badge" id="simBadge">⚠ SIM MODE</div>
+      <button id="googlyBtn" onclick="toggleGoogly()">
+        <span style="color:#f59e0b">G</span><span style="color:#ec4899">o</span><span style="color:#a78bfa">o</span><span style="color:#34d399">g</span><span style="color:#60a5fa">l</span><span style="color:#f59e0b">E</span><span style="color:#ec4899">i</span><span style="color:#a78bfa">i</span>
+      </button>
+    </div>
+    <div class="target-side">
+      <div id="tgtLbl" style="font-size:9px;letter-spacing:.14em;color:var(--purpleL)">TARGET POSE</div>
+      <div id="tgtName" style="font-family:var(--display);font-size:18px;letter-spacing:.05em;text-align:center">—</div>
+      <svg id="tgtSVG" viewBox="0 0 180 240" width="155" height="215"></svg>
+      <div id="poseDots" class="pose-dots"></div>
+      <div id="instPR" style="margin-top:6px;font-size:9px;color:var(--dim);letter-spacing:.1em"></div>
+    </div>
+  </div>
+  <div class="beat-bar">
+    <div class="beat-pulse" id="bPulse"></div>
+    <div class="beat-tl" id="bTL"></div>
+    <div style="font-size:8px;color:var(--dim);letter-spacing:.1em" id="bpmDisp">— BPM</div>
+  </div>
+  <div class="done-panel" id="donePanel">
+    <div id="doneTrophy" style="font-size:50px">🏆</div>
+    <div id="doneTitle" style="font-family:var(--display);font-size:32px;letter-spacing:.05em">SESSION COMPLETE</div>
+    <div class="score-row">
+      <div class="score-box"><div class="score-box-v" id="doneAvg" style="color:var(--purpleL)">--</div><div class="score-box-l">AVG SCORE</div></div>
+      <div class="score-box"><div class="score-box-v" id="donePeak" style="color:var(--green)">--</div><div class="score-box-l">PEAK SCORE</div></div>
+      <div class="score-box"><div class="score-box-v" id="doneBeat" style="color:var(--amber)">--</div><div class="score-box-l">BEAT SYNC %</div></div>
+    </div>
+    <div class="done-btns">
+      <button class="btn-p" onclick="openRemix()">🎛 REMIX</button>
+      <button class="btn-s" onclick="restartSes()">Try Again</button>
+      <button class="btn-s" onclick="saveHome()">Save & Home</button>
+    </div>
+  </div>
+</div>
+
+<!-- REMIX -->
+<div id="remix" class="screen">
+  <div style="padding:14px">
+    <button class="back-btn" onclick="showScreen('practice');document.getElementById('donePanel').classList.add('vis')" style="margin-bottom:10px">← Back</button>
+    <div class="remix-hdr">
+      <div class="remix-title">POP & LOCK REMIX</div>
+      <div style="font-size:9px;color:var(--dim);letter-spacing:.08em">YOUR REPLAY · BEAT-SYNC ANALYSIS · 100% TEMPLATE GHOST</div>
+    </div>
+    <div class="remix-controls">
+      <div class="bpm-ctrl">
+        <span style="font-size:9px;color:var(--dim);letter-spacing:.1em">BPM</span>
+        <button class="bpm-btn" onclick="adjBPM(-5)">−</button>
+        <span class="bpm-v" id="bpmVal">120</span>
+        <button class="bpm-btn" onclick="adjBPM(5)">+</button>
+      </div>
+      <button class="btn-p" id="playBtn" onclick="toggleRemix()" style="padding:8px 18px;font-size:12px">▶ PLAY REMIX</button>
+      <div style="font-size:9px;color:var(--dim)" id="remixLbl"></div>
+    </div>
+    <div class="remix-stage">
+      <div class="remix-panel">
+        <div class="remix-panel-title" style="color:var(--green)">YOUR PERFORMANCE</div>
+        <svg id="rUserSVG" viewBox="0 0 160 220" width="135" height="185"></svg>
+        <div style="font-size:10px;color:var(--dim);margin-top:5px" id="rUserScore"></div>
+      </div>
+      <div class="remix-panel">
+        <div class="remix-panel-title" style="color:var(--purpleL)">100% TEMPLATE GHOST</div>
+        <svg id="rTplSVG" viewBox="0 0 160 220" width="135" height="185"></svg>
+        <div style="font-size:10px;color:var(--purpleL);margin-top:5px" id="rTplScore">PERFECT</div>
       </div>
     </div>
-    <div class="header-right">
-      <div class="wecoin-val" id="wecoinVal">4,000</div>
-      <div class="wecoin-lbl">WECOIN (WEC)</div>
+    <div class="sync-tl">
+      <div style="font-size:9px;color:var(--dim);letter-spacing:.1em;margin-bottom:8px">BEAT SYNC MAP</div>
+      <div class="beat-map" id="beatMap"></div>
     </div>
-  </div>
-
-  <!-- Camera area -->
-
-  <div id="camWrap">
-    <video id="video" autoplay playsinline muted></video>
-    <canvas id="faceCanvas"></canvas>
-    <canvas id="simCanvas"></canvas>
-
-```
-<!-- Loading -->
-<div id="loadingOverlay">
-  <div class="spinner"></div>
-  <div class="load-msg">
-    LOADING FACE MESH<br>
-    <span class="load-sub" id="loadStep">Requesting camera…</span>
+    <div class="sync-scores">
+      <div style="font-size:9px;color:var(--dim);letter-spacing:.1em;margin-bottom:6px">SESSION BREAKDOWN</div>
+      <div class="sync-row" id="syncRow"></div>
+    </div>
+    <div class="whatif-panel">
+      <div class="whatif-title">WHAT IF YOU WERE FULLY IN SYNC?</div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:8px;line-height:1.6" id="whatifText"></div>
+      <canvas id="whatifCanvas" style="width:100%;height:75px;display:block"></canvas>
+    </div>
   </div>
 </div>
 
-<!-- Score badge -->
-<div id="scoreBadge">
-  <div class="score-label">SMILE SCORE</div>
-  <div class="score-num" id="scoreNum">0</div>
-  <div class="score-unit">%</div>
+<!-- DASHBOARD -->
+<div id="dashboard" class="screen">
+  <div class="db-gate" id="dbGate">
+    <div style="font-family:var(--display);font-size:34px;letter-spacing:.08em">INTELLIGENCE</div>
+    <div style="font-size:9px;color:var(--dim);letter-spacing:.2em;margin-top:-12px">ANAGAGE · RESTRICTED ACCESS</div>
+    <div style="width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 0 30px rgba(124,58,237,.4)">🔐</div>
+    <input id="pwInput" type="password" class="pw-input" placeholder="enter passphrase"
+      onkeydown="if(event.key==='Enter')tryPW()"/>
+    <div id="pwErr" style="font-size:10px;color:var(--red);display:none">incorrect passphrase</div>
+    <button class="unlock-btn" onclick="tryPW()">UNLOCK</button>
+  </div>
+  <div class="db-content" id="dbContent">
+    <div class="db-hdr">
+      <div><div class="db-title">INTELLIGENCE DASHBOARD</div><div class="db-sub">ANAGAGE · MAY 2023 – MAR 2026</div></div>
+      <button class="lock-btn" onclick="lockDB()">🔒 Lock</button>
+    </div>
+    <div class="tab-row">
+      <button class="db-tab active" onclick="showTab('arc',this)">Conv Arc</button>
+      <button class="db-tab" onclick="showTab('stress',this)">Emotions</button>
+      <button class="db-tab" onclick="showTab('movement',this)">Movement</button>
+      <button class="db-tab" onclick="showTab('wecoin',this)">WeCoin</button>
+      <button class="db-tab" onclick="showTab('mine',this)">⛏ Mine</button>
+      <button class="db-tab" onclick="showTab('smile',this)">☺ Smile</button>
+      <button class="db-tab" onclick="showTab('breath',this)">🫁 Breath</button>
+      <button class="db-tab" onclick="showTab('next',this)">📅 Next</button>
+    </div>
+
+    <!-- ARC -->
+    <div class="db-panel active" id="tab-arc">
+      <div class="ig">
+        <div class="ic"><div class="ic-lbl">LEGAL MAR '26</div><div class="ic-val" style="color:var(--blue)">51%</div><div class="ic-d" style="color:var(--green)">↑ from &lt;2% May '23</div></div>
+        <div class="ic"><div class="ic-lbl">CREATIVE FLOOR</div><div class="ic-val" style="color:var(--red)">11%</div><div class="ic-d" style="color:var(--red)">↓ from 28% peak</div></div>
+        <div class="ic"><div class="ic-lbl">MONTHS TRACKED</div><div class="ic-val" style="color:var(--purpleL)">35</div><div class="ic-d" style="color:var(--dim)">May '23 → Mar '26</div></div>
+        <div class="ic"><div class="ic-lbl">SHIFT ONSET</div><div class="ic-val" style="color:var(--amber)">Jan '24</div><div class="ic-d" style="color:var(--dim)">Legal began climbing</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-title">CONVERSATION CATEGORY DISTRIBUTION BY MONTH</div>
+        <div class="cc-sub">Stacked % of user turns. Legal (blue) grows &lt;2% → 65% and never retreats. Sport/play (grey) holds 4–11% as the persistent resilience signal across all phases.</div>
+        <div style="height:250px"><canvas id="arcChart"></canvas></div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-size:9px;color:var(--dim)">
+          <span><span style="display:inline-block;width:8px;height:8px;background:#378ADD;border-radius:2px;margin-right:3px"></span>Legal</span>
+          <span><span style="display:inline-block;width:8px;height:8px;background:#D85A30;border-radius:2px;margin-right:3px"></span>Creative</span>
+          <span><span style="display:inline-block;width:8px;height:8px;background:#7F77DD;border-radius:2px;margin-right:3px"></span>Personal</span>
+          <span><span style="display:inline-block;width:8px;height:8px;background:#1D9E75;border-radius:2px;margin-right:3px"></span>Intellectual</span>
+          <span><span style="display:inline-block;width:8px;height:8px;background:#BA7517;border-radius:2px;margin-right:3px"></span>Professional</span>
+          <span><span style="display:inline-block;width:8px;height:8px;background:#888780;border-radius:2px;margin-right:3px"></span>Sport/play</span>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div style="font-size:11px;line-height:1.8;display:flex;flex-direction:column;gap:10px">
+          <div><span class="ph-badge" style="background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.3)">PHASE 1 · PRE-FIGHT · May '23–Dec '23</span><br><span style="font-size:11px;color:var(--dim)">Net calm. ANAGAGE, WeCoin, flow-state, patents. Legal &lt;6%. Creative 28% peak. Highest intellectual curiosity.</span></div>
+          <div><span class="ph-badge" style="background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.3)">PHASE 2 · ONSET · Jan '24–Jan '25</span><br><span style="font-size:11px;color:var(--dim)">Stress climbs Jun–Aug '24. Threat discovered. Legal 30–41%. WeCoin simulation peaks here.</span></div>
+          <div><span class="ph-badge" style="background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.3)">PHASE 3 · ACTIVE WAR · Feb '25–present</span><br><span style="font-size:11px;color:var(--dim)">Legal 50–65%. Stress peaks −14 (Feb '25, Nov '25). Calm nearly vanishes. Sport/play holds 4–11% — the resilience signal.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STRESS -->
+    <div class="db-panel" id="tab-stress">
+      <div class="ig">
+        <div class="ic"><div class="ic-lbl">WORST MONTH</div><div class="ic-val" style="color:var(--red)">−14</div><div class="ic-d" style="color:var(--dim)">Feb '25 & Nov '25</div></div>
+        <div class="ic"><div class="ic-lbl">BEST CALM</div><div class="ic-val" style="color:var(--green)">+6</div><div class="ic-d" style="color:var(--green)">Oct '23 pre-fight</div></div>
+        <div class="ic"><div class="ic-lbl">NET NEG MONTHS</div><div class="ic-val" style="color:var(--amber)">21/35</div><div class="ic-d" style="color:var(--dim)">of 35 tracked</div></div>
+        <div class="ic"><div class="ic-lbl">CREATIVE</div><div class="ic-val" style="color:var(--purpleL)">HOLDS</div><div class="ic-d" style="color:var(--dim)">Never hits zero</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-title">EMOTIONAL TEMPERATURE — CALM vs STRESS</div>
+        <div class="cc-sub">Net score = calm − stress per month. Green = net calm. Red = net stressed.</div>
+        <div style="height:190px"><canvas id="stressChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-title">AVG TURN LENGTH — COMPLEXITY SIGNAL</div>
+        <div class="cc-sub">Average chars/turn. Spikes = complex legal drafting sessions.</div>
+        <div style="height:150px"><canvas id="lengthChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- MOVEMENT -->
+    <div class="db-panel" id="tab-movement">
+      <div class="ig">
+        <div class="ic"><div class="ic-lbl">SPORT SIGNAL</div><div class="ic-val" style="color:var(--green)">4–11%</div><div class="ic-d" style="color:var(--green)">Persistent all phases</div></div>
+        <div class="ic"><div class="ic-lbl">SESSIONS</div><div class="ic-val" id="dbSessions" style="color:var(--purpleL)">0</div><div class="ic-d" style="color:var(--dim)">This session</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-title">SPORT / MOVEMENT — MONTHLY %</div>
+        <div style="height:150px"><canvas id="sportChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-title">PRACTICE SESSION LOG</div>
+        <div id="sesLog" class="log-scroll" style="color:var(--dim2);font-style:italic">No sessions yet.</div>
+      </div>
+    </div>
+
+    <!-- WECOIN MODEL -->
+    <div class="db-panel" id="tab-wecoin">
+      <div class="ig">
+        <div class="ic"><div class="ic-lbl">TOTAL SUPPLY</div><div class="ic-val" style="color:var(--amber)">51T</div><div class="ic-d" style="color:var(--dim)">WEC</div></div>
+        <div class="ic"><div class="ic-lbl">DAILY GLOBAL CAP</div><div class="ic-val" style="color:var(--green)">2.79B</div><div class="ic-d" style="color:var(--dim)">51T×2%÷365</div></div>
+        <div class="ic"><div class="ic-lbl">GHA / HUMAN</div><div class="ic-val" style="color:var(--purpleL)">4,000</div><div class="ic-d" style="color:var(--dim)">at registration</div></div>
+        <div class="ic"><div class="ic-lbl">MAX DAY REWARD</div><div class="ic-val" style="color:var(--blue)">102K</div><div class="ic-d" style="color:var(--dim)">10×10×2^10</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-title">USER GROWTH PROJECTION — 300 DAYS</div>
+        <div style="height:170px"><canvas id="wcGrowthChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-title">REWARD FORMULA: PRs × EAs × 2^EAs (3 PRs shown)</div>
+        <div style="height:150px"><canvas id="wcRewardChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- MINE -->
+    <div class="db-panel" id="tab-mine">
+      <div style="font-size:9px;color:var(--dim);letter-spacing:.1em;margin-bottom:10px">PERSONAL MINING EXPERIENCE — POST PRs · COLLECT EAs · EARN WEC</div>
+      <div class="mine-stat-grid">
+        <div class="mine-stat"><div class="mine-stat-v" id="mPRs" style="color:var(--amber)">0</div><div class="mine-stat-l">PRs TODAY</div></div>
+        <div class="mine-stat"><div class="mine-stat-v" id="mEAs" style="color:var(--green)">0</div><div class="mine-stat-l">EAs TODAY</div></div>
+        <div class="mine-stat"><div class="mine-stat-v" id="mWEC" style="color:var(--purpleL)">0</div><div class="mine-stat-l">WEC EARNED</div></div>
+      </div>
+      <div class="chart-card" style="margin-bottom:8px">
+        <div class="cc-title">POST A PERSONAL RECORD</div>
+        <input id="prDesc" type="text" placeholder="Describe your PR (e.g. held smile 3.2s, new mobility PR…)"
+          style="width:100%;padding:9px;border-radius:8px;background:var(--card2);border:1px solid var(--bdr);color:var(--txt);font-family:var(--sans);font-size:12px;outline:none;margin-bottom:8px"/>
+        <div style="display:flex;gap:8px">
+          <button onclick="minePostPR()" style="flex:1;padding:10px;border-radius:8px;border:none;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:12px;background:var(--amber);color:#000">⚡ POST PR</button>
+          <button onclick="mineGiveEA()" style="flex:1;padding:10px;border-radius:8px;border:none;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:12px;background:var(--green);color:#000">👏 GIVE EA</button>
+        </div>
+        <div id="mineNote" style="margin-top:8px;font-size:9px;color:var(--dim)">Formula: PRs × EAs × 2^EAs · Daily cap: 10 PRs, 10 EAs</div>
+      </div>
+      <div class="chart-card" style="margin-bottom:8px">
+        <div class="cc-title">LIVE NETWORK — 20 PEERS</div>
+        <div style="height:130px"><canvas id="netChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-title">MINING LOG</div>
+        <div id="mineLog" class="log-scroll"><div style="color:var(--dim2);font-style:italic">Post a PR to start mining…</div></div>
+      </div>
+    </div>
+
+    <!-- SMILE -->
+    <div class="db-panel" id="tab-smile">
+      <div style="font-size:9px;color:var(--dim);letter-spacing:.1em;margin-bottom:10px">SMILE TRACKER · AM BOOTUP · STT — TOTAL TOOTH TIME</div>
+      <div class="ig" style="grid-template-columns:repeat(4,1fr)">
+        <div class="ic"><div class="ic-lbl">PRs TODAY</div><div class="ic-val" id="stPRs" style="color:var(--amber)">0</div></div>
+        <div class="ic"><div class="ic-lbl">AM GOAL</div><div class="ic-val" id="stGoal" style="color:var(--dim)">0/30</div></div>
+        <div class="ic"><div class="ic-lbl">TOOTH TIME</div><div class="ic-val" id="stTTT" style="color:var(--purpleL)">0s</div></div>
+        <div class="ic"><div class="ic-lbl">PEAK</div><div class="ic-val" id="stPeak" style="color:var(--greenL)">0%</div></div>
+      </div>
+      <div class="smile-cam" id="smileCamWrap">
+        <canvas id="smileCanvas"></canvas>
+        <div class="smile-overlay" id="smileOvr">
+          <div style="font-size:36px">☺</div>
+          <button onclick="startSmile()" style="padding:10px 22px;border-radius:10px;border:none;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:13px;background:linear-gradient(135deg,#f59e0b,#ec4899);color:#000">START SMILE TRACKING</button>
+          <div style="font-size:9px;color:var(--dim);letter-spacing:.08em">Camera · Hold smile 1.5s = PR</div>
+        </div>
+        <div class="smile-score-badge" id="smileScoreBadge">
+          <div style="font-family:var(--display);font-size:26px;color:#f59e0b" id="smileScoreNum">0</div>
+          <div style="font-size:7px;color:var(--dim);letter-spacing:.14em">SMILE %</div>
+        </div>
+        <div class="smile-hold-bar" id="smileHoldBar">
+          <div class="hold-track"><div class="hold-fill" id="smileHoldFill"></div></div>
+          <div style="font-size:7px;color:rgba(245,158,11,.7);letter-spacing:.1em;margin-top:2px;text-align:center">HOLD SMILE → PR</div>
+        </div>
+      </div>
+      <div class="chart-card" style="margin-bottom:8px">
+        <div class="cc-title">SMILE SCORE HISTORY</div>
+        <canvas id="smileHistChart" style="width:100%;height:48px;display:block"></canvas>
+      </div>
+      <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px">
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:11px;color:var(--dim)">
+          <input type="checkbox" id="breathToggle" onchange="toggleBreathInSmile()" style="width:14px;height:14px;accent-color:var(--green)"/>
+          Enable Breath Module during Smile tracking
+        </label>
+      </div>
+      <div class="chart-card">
+        <div class="cc-title">SESSION LOG</div>
+        <div id="smileLog" class="log-scroll"><div style="color:var(--dim2);font-style:italic">No PRs yet</div></div>
+      </div>
+    </div>
+
+    <!-- BREATH -->
+    <div class="db-panel" id="tab-breath">
+      <div style="font-size:9px;color:var(--dim);letter-spacing:.1em;margin-bottom:10px">BREATH TRACKER · TECHNIQUE TRAINING · CONGESTION DETECTION</div>
+      <div class="breath-stats">
+        <div class="breath-stat"><div class="breath-stat-v" id="brType" style="color:var(--green);font-size:15px">—</div><div class="breath-stat-l">SOUND TYPE</div></div>
+        <div class="breath-stat"><div class="breath-stat-v" id="brRate" style="color:var(--purpleL)">—</div><div class="breath-stat-l">BREATHS/MIN</div></div>
+        <div class="breath-stat"><div class="breath-stat-v" id="brClarity" style="color:var(--greenL);font-size:14px">—</div><div class="breath-stat-l">CLARITY</div></div>
+      </div>
+      <div class="chart-card" style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div class="cc-title" style="margin-bottom:0">REAL-TIME SPECTROGRAM</div>
+          <div style="display:flex;gap:6px">
+            <button id="brStartBtn" onclick="startBreath()" style="padding:5px 12px;border-radius:8px;border:none;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:10px;background:var(--green);color:#000">▶ START</button>
+            <button onclick="stopBreath()" style="padding:5px 12px;border-radius:8px;border:none;cursor:pointer;font-family:var(--sans);font-weight:600;font-size:10px;background:var(--card2);color:var(--dim);border:1px solid var(--bdr)">■ STOP</button>
+          </div>
+        </div>
+        <canvas class="spectrogram" id="brSpectro"></canvas>
+        <div style="display:flex;justify-content:space-between;font-size:7px;color:var(--dim);margin-top:3px"><span>0Hz</span><span>500Hz</span><span>1kHz</span><span>2kHz</span><span>4kHz+</span></div>
+      </div>
+      <div class="chart-card" style="margin-bottom:8px">
+        <div class="cc-title">AMPLITUDE ENVELOPE</div>
+        <canvas id="brEnvelope" style="width:100%;height:55px;display:block;background:#020208;border-radius:6px"></canvas>
+      </div>
+      <div class="chart-card" style="margin-bottom:8px">
+        <div class="cc-title">CONGESTION TIMELINE</div>
+        <canvas id="brTimeline" style="width:100%;height:48px;display:block;background:#020208;border-radius:6px"></canvas>
+        <div class="congestion-legend">
+          <span style="color:#34d399">● Normal</span>
+          <span style="color:#a78bfa">● Fine rales (thin secretions)</span>
+          <span style="color:#f59e0b">● Coarse crackles (mucus)</span>
+          <span style="color:#3b82f6">● Wheeze (bronchospasm)</span>
+          <span style="color:#ef4444">● Rhonchi (large airway)</span>
+          <span style="color:#ec4899">● Stridor (upper obstruction)</span>
+        </div>
+      </div>
+      <div class="chart-card" style="margin-bottom:8px">
+        <div class="cc-title" style="margin-bottom:8px">BREATHING TECHNIQUE TRAINER</div>
+        <div class="tech-btns">
+          <button class="tech-btn" id="bt-478" onclick="setTech('4-7-8')">4-7-8</button>
+          <button class="tech-btn" id="bt-box" onclick="setTech('box')">Box (4-4-4-4)</button>
+          <button class="tech-btn" id="bt-wim" onclick="setTech('wim')">Wim Hof</button>
+          <button class="tech-btn" id="bt-coh" onclick="setTech('coh')">Coherent (5.5s)</button>
+        </div>
+        <div class="breath-guide" id="breathGuide">
+          <div class="breath-phase-lbl" id="brPhase" style="color:var(--green)">—</div>
+          <div class="breath-countdown" id="brCount">—</div>
+          <div class="breath-prog-track"><div class="breath-prog-fill" id="brProg" style="background:var(--green)"></div></div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-title">EVENT LOG</div>
+        <div id="brLog" class="log-scroll"><div style="color:var(--dim2);font-style:italic">Start tracking to see events…</div></div>
+      </div>
+    </div>
+
+    <!-- NEXT / CALENDAR -->
+    <div class="db-panel" id="tab-next">
+      <div style="font-size:9px;color:var(--dim);letter-spacing:.1em;margin-bottom:10px">WHAT TO DO NEXT — PRIORITY INTELLIGENCE · DAILY MOMENTUM</div>
+      <div class="cal-score">
+        <div class="cal-score-pill"><div class="cal-score-v" id="calComplete" style="color:var(--green)">0</div><div class="cal-score-l">DONE TODAY</div></div>
+        <div class="cal-score-pill"><div class="cal-score-v" id="calTotal" style="color:var(--amber)">0</div><div class="cal-score-l">TOTAL TASKS</div></div>
+        <div class="cal-score-pill"><div class="cal-score-v" id="calMomentum" style="color:var(--purpleL)">0%</div><div class="cal-score-l">MOMENTUM</div></div>
+      </div>
+      <div class="chart-card" style="margin-bottom:10px">
+        <div class="cc-title">MOMENTUM — LAST 14 DAYS</div>
+        <canvas class="momentum-chart" id="momentumChart"></canvas>
+      </div>
+      <div class="add-task-form">
+        <div class="cc-title" style="margin-bottom:8px">ADD TASK</div>
+        <input id="taskTitle" type="text" class="task-input" placeholder="What needs to get done?"/>
+        <div class="task-row">
+          <select id="taskPri" class="task-select">
+            <option value="urgent">🔴 Urgent</option>
+            <option value="high">🟡 High</option>
+            <option value="med" selected>🔵 Medium</option>
+            <option value="low">⚪ Low</option>
+          </select>
+          <select id="taskCat" class="task-select">
+            <option value="legal">⚖️ Legal</option>
+            <option value="family">👨‍👧 Family</option>
+            <option value="health">💪 Health</option>
+            <option value="work">💼 Work</option>
+            <option value="creative">🎨 Creative</option>
+            <option value="financial">💰 Financial</option>
+            <option value="other">📌 Other</option>
+          </select>
+          <select id="taskTime" class="task-select">
+            <option value="5">5 min</option>
+            <option value="15" selected>15 min</option>
+            <option value="30">30 min</option>
+            <option value="60">1 hr</option>
+            <option value="120">2+ hr</option>
+          </select>
+          <button onclick="addTask()" style="padding:7px 16px;border-radius:8px;border:none;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:12px;background:var(--purple);color:#fff">+ ADD</button>
+        </div>
+      </div>
+      <div class="cal-section">
+        <div class="cal-section-title">🔴 DO FIRST — URGENT</div>
+        <div id="taskUrgent"></div>
+      </div>
+      <div class="cal-section">
+        <div class="cal-section-title">🟡 DO TODAY — HIGH PRIORITY</div>
+        <div id="taskHigh"></div>
+      </div>
+      <div class="cal-section">
+        <div class="cal-section-title">🔵 DO SOON — MEDIUM</div>
+        <div id="taskMed"></div>
+      </div>
+      <div class="cal-section">
+        <div class="cal-section-title">⚪ BACKLOG — LOW</div>
+        <div id="taskLow"></div>
+      </div>
+      <div class="chart-card" style="margin-bottom:10px">
+        <div class="cc-title">AI RECOMMENDATION</div>
+        <div id="aiRec" style="font-size:11px;color:var(--dim);line-height:1.7;padding:4px 0">Add tasks to get a recommendation.</div>
+      </div>
+    </div>
+
+  </div><!-- end db-content -->
+</div><!-- end dashboard -->
+
+<!-- NAV -->
+<div id="nav">
+  <button class="nav-btn active" id="navHome" onclick="showScreen('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home
+  </button>
+  <button class="nav-btn" id="navPractice" onclick="showScreen('practice')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>Practice
+  </button>
+  <button class="nav-btn" id="navRemix" onclick="showScreen('remix')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Remix
+  </button>
+  <button class="nav-btn" id="navDashboard" onclick="showScreen('dashboard')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Intel
+  </button>
 </div>
 
-<!-- Smiling indicator -->
-<div id="smilingBadge">☺ SMILING</div>
-
-<!-- Streak ring -->
-<div id="streakRing">
-  <svg viewBox="0 0 54 54">
-    <circle cx="27" cy="27" r="23" fill="none" stroke="#181828" stroke-width="4"/>
-    <circle id="streakArc" cx="27" cy="27" r="23" fill="none"
-      stroke="url(#streakGrad)" stroke-width="4"
-      stroke-dasharray="144.5" stroke-dashoffset="144.5"
-      stroke-linecap="round" transform="rotate(-90 27 27)"/>
-    <defs>
-      <linearGradient id="streakGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="#f59e0b"/>
-        <stop offset="100%" stop-color="#ec4899"/>
-      </linearGradient>
-    </defs>
-  </svg>
-  <div class="streak-val">
-    <div class="streak-num" id="streakNum">0.0s</div>
-    <div class="streak-lbl">HOLD</div>
-  </div>
-</div>
-
-<!-- Tap hint -->
-<div id="tapHint">Smile and hold for 1.5s to earn a PR</div>
-
-<!-- Hold bar -->
-<div id="holdWrap">
-  <div id="holdTrack"><div id="holdFill"></div></div>
-  <div class="hold-labels">
-    <span>HOLD SMILE → PR</span>
-    <span id="holdPct">0%</span>
-  </div>
-</div>
-
-<!-- PR flash -->
-<div id="prFlash"></div>
-<div id="prLabel">PR!</div>
-```
-
-  </div>
-
-  <!-- Stats strip -->
-
-  <div id="statsStrip">
-    <div class="stat-cell">
-      <div class="stat-val" id="statPRs" style="color:var(--gold)">0</div>
-      <div class="stat-lbl">PRs TODAY</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-val" id="statGoal" style="color:var(--dim)">0/30</div>
-      <div class="stat-lbl">AM GOAL</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-val" id="statTTT" style="color:var(--purpleL)">0s</div>
-      <div class="stat-lbl">TOOTH TIME</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-val" id="statPeak" style="color:var(--greenL)">0%</div>
-      <div class="stat-lbl">PEAK SCORE</div>
-    </div>
-  </div>
-
-  <!-- Progress bar -->
-
-  <div id="progressWrap">
-    <div class="prog-row">
-      <span class="prog-title">AM BOOTUP PROGRESS</span>
-      <span class="prog-pct" id="progPct">0%</span>
-    </div>
-    <div id="progTrack"><div id="progFill"></div></div>
-    <div class="prog-sub" id="progSub">Smile and hold for 1.5s to earn a PR</div>
-  </div>
-
-  <!-- Score chart -->
-
-  <div id="chartPanel">
-    <div class="chart-title">SMILE SCORE HISTORY (LAST 60 READINGS)</div>
-    <canvas id="scoreChart" height="44"></canvas>
-  </div>
-
-  <!-- Log -->
-
-  <div id="logWrap">
-    <div id="logTitle">SESSION LOG</div>
-    <div id="logBody">
-      <div id="noLog">No PRs yet — smile and hold for 1.5s</div>
-    </div>
-  </div>
-
-</div>
-
-<!-- Protocol banner (injected below) -->
-
-<div id="protoBanner">
-  <button class="proto-close" onclick="document.getElementById('protoBanner').style.display='none'">Dismiss ✕</button>
-  <div class="proto-heading" id="protoHeading"></div>
-  <div class="proto-note">The app still works in simulation mode — all features except live face tracking.</div>
-  <div class="proto-options" id="protoOptions"></div>
-</div>
-
-<!-- MediaPipe Face Mesh -->
+<div id="flash"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════════
-// CONSTANTS
+// ROUTINES & POSES
 // ═══════════════════════════════════════════════════════════════════
-const SMILE_THRESH   = 0.30;   // score threshold to count as smiling
-const HOLD_GOAL_MS   = 1500;   // ms of continuous smile to earn a PR
-const PR_GOAL        = 30;     // AM Bootup daily goal
-const GHA            = 4000;   // starting WeCoin
-const MAX_PRS        = 10;     // max PRs for WeCoin reward
-const MAX_EAS        = 10;
-const SMOOTH_FACTOR  = 0.18;   // IIR smoothing (lower = smoother)
-
-// MediaPipe landmark indices
-const LM = {
-  lCorner: 61, rCorner: 291,
-  upperLip: 13, lowerLip: 14,
-  nose: 1, chin: 152,
-  lCheek: 234, rCheek: 454,
-  lEye: 33, rEye: 263,
-  lBrow: 105, rBrow: 334,
+const ROUTINES=[
+  {id:"r1",title:"Morning Flow",cat:"Yoga",emoji:"🌅",color:"#10b981",bpm:80,instPR:91,diff:"Beginner",dur:"3 min",
+   poses:[{n:"Mountain",p:"stand_tall",d:2000},{n:"Arms Up",p:"arms_up",d:1500},{n:"Forward Fold",p:"forward_fold",d:2000},{n:"Warrior I",p:"warrior",d:2000},{n:"Rest",p:"stand_tall",d:1500}]},
+  {id:"r2",title:"Hoop Dreams",cat:"Basketball",emoji:"🏀",color:"#f59e0b",bpm:100,instPR:87,diff:"Intermediate",dur:"5 min",
+   poses:[{n:"Ready",p:"athletic_stance",d:1500},{n:"Crossover L",p:"crossover_l",d:1500},{n:"Crossover R",p:"crossover_r",d:1500},{n:"Behind Back",p:"behind_back",d:2000},{n:"Finish",p:"arms_up",d:1500}]},
+  {id:"r3",title:"Hip Hop",cat:"Dance",emoji:"🎵",color:"#7c3aed",bpm:95,instPR:93,diff:"Beginner",dur:"4 min",
+   poses:[{n:"Bounce",p:"athletic_stance",d:1200},{n:"Step L",p:"crossover_l",d:800},{n:"Step R",p:"crossover_r",d:800},{n:"Body Roll",p:"forward_fold",d:1500},{n:"Arms",p:"arms_out",d:1500}]},
+  {id:"r4",title:"HIIT Circuit",cat:"Fitness",emoji:"🔥",color:"#ef4444",bpm:130,instPR:78,diff:"Advanced",dur:"6 min",
+   poses:[{n:"Squat",p:"squat",d:1000},{n:"Jump",p:"arms_up",d:800},{n:"Crouch",p:"forward_fold",d:800},{n:"High Knee",p:"high_knee",d:1000},{n:"Reset",p:"athletic_stance",d:1200}]},
+  {id:"r5",title:"Salsa",cat:"Dance",emoji:"💃",color:"#ec4899",bpm:105,instPR:89,diff:"Intermediate",dur:"5 min",
+   poses:[{n:"Basic L",p:"crossover_l",d:1000},{n:"Basic R",p:"crossover_r",d:1000},{n:"Spin Prep",p:"arms_out",d:800},{n:"Spin",p:"arms_up",d:1000},{n:"Finish",p:"athletic_stance",d:1200}]},
+];
+const P={
+  stand_tall:    {nose:[.5,.13],lSh:[.41,.28],rSh:[.59,.28],lEl:[.37,.41],rEl:[.63,.41],lWr:[.35,.54],rWr:[.65,.54],lHi:[.43,.53],rHi:[.57,.53],lKn:[.42,.69],rKn:[.58,.69],lAn:[.41,.85],rAn:[.59,.85]},
+  arms_up:       {nose:[.5,.13],lSh:[.41,.28],rSh:[.59,.28],lEl:[.30,.16],rEl:[.70,.16],lWr:[.23,.06],rWr:[.77,.06],lHi:[.43,.53],rHi:[.57,.53],lKn:[.42,.69],rKn:[.58,.69],lAn:[.41,.85],rAn:[.59,.85]},
+  arms_out:      {nose:[.5,.13],lSh:[.41,.28],rSh:[.59,.28],lEl:[.24,.28],rEl:[.76,.28],lWr:[.14,.30],rWr:[.86,.30],lHi:[.43,.53],rHi:[.57,.53],lKn:[.42,.69],rKn:[.58,.69],lAn:[.41,.85],rAn:[.59,.85]},
+  forward_fold:  {nose:[.5,.43],lSh:[.43,.36],rSh:[.57,.36],lEl:[.39,.53],rEl:[.61,.53],lWr:[.39,.63],rWr:[.61,.63],lHi:[.43,.43],rHi:[.57,.43],lKn:[.42,.63],rKn:[.58,.63],lAn:[.41,.85],rAn:[.59,.85]},
+  warrior:       {nose:[.5,.18],lSh:[.35,.31],rSh:[.56,.31],lEl:[.20,.31],rEl:[.72,.31],lWr:[.08,.31],rWr:[.84,.31],lHi:[.41,.53],rHi:[.59,.53],lKn:[.33,.71],rKn:[.62,.63],lAn:[.24,.85],rAn:[.67,.81]},
+  athletic_stance:{nose:[.5,.14],lSh:[.42,.29],rSh:[.58,.29],lEl:[.37,.43],rEl:[.63,.43],lWr:[.35,.55],rWr:[.65,.55],lHi:[.44,.54],rHi:[.56,.54],lKn:[.41,.68],rKn:[.59,.68],lAn:[.39,.85],rAn:[.61,.85]},
+  crossover_l:   {nose:[.5,.14],lSh:[.42,.29],rSh:[.58,.29],lEl:[.33,.38],rEl:[.65,.45],lWr:[.27,.30],rWr:[.69,.57],lHi:[.44,.54],rHi:[.56,.54],lKn:[.37,.67],rKn:[.61,.70],lAn:[.35,.85],rAn:[.63,.87]},
+  crossover_r:   {nose:[.5,.14],lSh:[.42,.29],rSh:[.58,.29],lEl:[.35,.45],rEl:[.67,.38],lWr:[.31,.57],rWr:[.73,.30],lHi:[.44,.54],rHi:[.56,.54],lKn:[.39,.70],rKn:[.63,.67],lAn:[.37,.87],rAn:[.65,.85]},
+  behind_back:   {nose:[.5,.14],lSh:[.42,.29],rSh:[.58,.29],lEl:[.35,.41],rEl:[.69,.35],lWr:[.31,.53],rWr:[.75,.45],lHi:[.44,.54],rHi:[.56,.54],lKn:[.41,.68],rKn:[.59,.68],lAn:[.40,.85],rAn:[.60,.85]},
+  squat:         {nose:[.5,.29],lSh:[.42,.39],rSh:[.58,.39],lEl:[.35,.49],rEl:[.65,.49],lWr:[.33,.59],rWr:[.67,.59],lHi:[.43,.61],rHi:[.57,.61],lKn:[.37,.75],rKn:[.63,.75],lAn:[.35,.87],rAn:[.65,.87]},
+  high_knee:     {nose:[.5,.14],lSh:[.42,.29],rSh:[.58,.29],lEl:[.35,.41],rEl:[.63,.37],lWr:[.33,.53],rWr:[.67,.43],lHi:[.44,.54],rHi:[.56,.54],lKn:[.46,.43],rKn:[.59,.68],lAn:[.44,.57],rAn:[.61,.85]},
 };
+const MPM={lSh:11,rSh:12,lEl:13,rEl:14,lWr:15,rWr:16,lHi:23,rHi:24,lKn:25,rKn:26,lAn:27,rAn:28};
+const SEGS=[['lSh','rSh'],['lHi','rHi'],['lSh','lHi'],['rSh','rHi'],['lSh','lEl'],['lEl','lWr'],['rSh','rEl'],['rEl','rWr'],['lHi','lKn'],['lKn','lAn'],['rHi','rKn'],['rKn','rAn'],['lSh','rHi'],['rSh','lHi']];
+const JNTS=['lSh','rSh','lEl','rEl','lHi','rHi','lKn','rKn','lAn','rAn'];
 
 // ═══════════════════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════════════════
-let prs = 0, totalToothTime = 0;
-let smoothScore = 0, smiling = false;
-let holdStart = null, streakMs = 0;
-let lastPRTime = 0;
-let peakScore = 0;
-let mode = 'loading'; // loading | live | sim
-let wecoin = GHA;
-let scoreHistory = [];
-let prLog = [];
-let sessionStart = Date.now();
-let simPhase = 0, simTick = null;
-let faceMesh = null, cameraInst = null;
-let prFlashTimeout = null;
-let chartCtx = null;
+let curRoutine=null, sesMode='idle', sesPoses=[], sesScores=[], beatHits=[], recPoses=[];
+let sesStart=null, poseIdx=0, bpm=120, beatIval=null, beatCnt=0;
+let sesIval=null, cdTimer=null, remixPlaying=false, remixIval=null;
+let googly=false, gPhase=0, simMode=false, simPh=0;
+let curLM=null, poseDetect=null, camInst=null;
+let userPRs={}, beatIQHist=[], sesCount=0, lastSes=null;
 
-// DOM refs
-const videoEl    = document.getElementById('video');
-const faceCanvas = document.getElementById('faceCanvas');
-const simCanvas  = document.getElementById('simCanvas');
-const ctx        = faceCanvas.getContext('2d');
-const loadOverlay= document.getElementById('loadingOverlay');
-const loadStep   = document.getElementById('loadStep');
-const scoreBadge = document.getElementById('scoreBadge');
-const scoreNum   = document.getElementById('scoreNum');
-const smilingBadge = document.getElementById('smilingBadge');
-const streakRing = document.getElementById('streakRing');
-const streakNum  = document.getElementById('streakNum');
-const streakArc  = document.getElementById('streakArc');
-const holdWrap   = document.getElementById('holdWrap');
-const holdFill   = document.getElementById('holdFill');
-const holdPct    = document.getElementById('holdPct');
-const tapHint    = document.getElementById('tapHint');
-const statusDot  = document.getElementById('statusDot');
+// ═══════════════════════════════════════════════════════════════════
+// SCREEN & NAV
+// ═══════════════════════════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const nb=document.getElementById('nav'+id.charAt(0).toUpperCase()+id.slice(1));
+  if(nb) nb.classList.add('active');
+  if(id==='dashboard' && !dbUnlocked){
+    document.getElementById('dbGate').classList.remove('hidden');
+    document.getElementById('dbContent').classList.remove('vis');
+  }
+  if(id==='remix') buildRemix();
+}
+function goHome(){stopSession();showScreen('home');buildHome();}
+function openRemix(){document.getElementById('donePanel').classList.remove('vis');showScreen('remix');}
+function saveHome(){stopSession();showScreen('home');buildHome();logSession();}
+function restartSes(){document.getElementById('donePanel').classList.remove('vis');stopSession();startSession();}
+
+// ═══════════════════════════════════════════════════════════════════
+// STICK FIGURE
+// ═══════════════════════════════════════════════════════════════════
+function drawStick(svgEl,pose,color='#a78bfa',alpha=1,W=160,H=220){
+  const pp=P[pose]||P.stand_tall;
+  const pt=k=>({x:(pp[k]?.[0]||.5)*W,y:(pp[k]?.[1]||.5)*H});
+  const nose=pt('nose'); const headY=nose.y-13; const hR=12;
+  let svg=SEGS.map(([a,b])=>{const pa=pt(a),pb=pt(b);return `<line x1="${pa.x.toFixed(1)}" y1="${pa.y.toFixed(1)}" x2="${pb.x.toFixed(1)}" y2="${pb.y.toFixed(1)}" stroke="${color}" stroke-width="2.5" stroke-linecap="round" opacity="${alpha}"/>`;}).join('');
+  svg+=JNTS.map(k=>{const p=pt(k);return `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${color}" opacity="${alpha}"/>`;}).join('');
+  svg+=`<circle cx="${nose.x.toFixed(1)}" cy="${headY.toFixed(1)}" r="${hR}" fill="${googly?'rgba(232,228,240,0.08)':'none'}" stroke="${color}" stroke-width="2" opacity="${alpha}"/>`;
+  if(googly) svg+=buildEyesSVG(nose.x,headY,hR,gPhase,color,alpha);
+  svgEl.innerHTML=svg; gPhase+=0.06;
+}
+
+function drawStickInterp(svgEl,pA,pB,t,color='#a78bfa',alpha=1,W=160,H=220){
+  const src=P[pA]||P.stand_tall, tgt=P[pB]||P.stand_tall;
+  const lerp=(a,b)=>a+(b-a)*t;
+  const pt=k=>({x:lerp(src[k]?.[0]||.5,tgt[k]?.[0]||.5)*W, y:lerp(src[k]?.[1]||.5,tgt[k]?.[1]||.5)*H});
+  const nose=pt('nose'); const headY=nose.y-13; const hR=12;
+  let svg=SEGS.map(([a,b])=>{const pa=pt(a),pb=pt(b);return `<line x1="${pa.x.toFixed(1)}" y1="${pa.y.toFixed(1)}" x2="${pb.x.toFixed(1)}" y2="${pb.y.toFixed(1)}" stroke="${color}" stroke-width="2.5" stroke-linecap="round" opacity="${alpha}"/>`;}).join('');
+  svg+=JNTS.map(k=>{const p=pt(k);return `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${color}" opacity="${alpha}"/>`;}).join('');
+  svg+=`<circle cx="${nose.x.toFixed(1)}" cy="${headY.toFixed(1)}" r="${hR}" fill="${googly?'rgba(232,228,240,0.08)':'none'}" stroke="${color}" stroke-width="2" opacity="${alpha}"/>`;
+  if(googly) svg+=buildEyesSVG(nose.x,headY,hR,gPhase,color,alpha);
+  svgEl.innerHTML=svg; gPhase+=0.06;
+}
+
+function drawStickFromSnaps(svgEl,snapA,snapB,t,color='#34d399',alpha=1,W=160,H=220){
+  if(!snapA||!snapB){drawStick(svgEl,'stand_tall',color,alpha,W,H);return;}
+  const lerp=(a,b)=>a+(b-a)*t;
+  const pt=k=>{const a=snapA[k]||[.5,.5],b=snapB[k]||[.5,.5];return{x:(1-lerp(a[0],b[0]))*W,y:lerp(a[1],b[1])*H};};
+  let svg=SEGS.map(([a,b])=>{if(!snapA[a]||!snapA[b])return '';const pa=pt(a),pb=pt(b);return `<line x1="${pa.x.toFixed(1)}" y1="${pa.y.toFixed(1)}" x2="${pb.x.toFixed(1)}" y2="${pb.y.toFixed(1)}" stroke="${color}" stroke-width="2.5" stroke-linecap="round" opacity="${alpha}"/>`;}).join('');
+  svg+=JNTS.map(k=>{if(!snapA[k])return '';const p=pt(k);return `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${color}" opacity="${alpha}"/>`;}).join('');
+  if(snapA.nose){const nose=pt('nose'),headY=nose.y-13,hR=12;svg+=`<circle cx="${nose.x.toFixed(1)}" cy="${headY.toFixed(1)}" r="${hR}" fill="${googly?'rgba(232,228,240,0.08)':'none'}" stroke="${color}" stroke-width="2" opacity="${alpha}"/>`;if(googly)svg+=buildEyesSVG(nose.x,headY,hR,gPhase,color,alpha);}
+  svgEl.innerHTML=svg; gPhase+=0.06;
+}
+
+function buildEyesSVG(hcx,hcy,hR,ph,color,alpha){
+  const eR=hR*0.84, eS=hR*0.62, eY=hcy-hR*0.1;
+  return[-1,1].map((s,idx)=>{
+    const ex=hcx+s*eS, p2=ph+idx*1.9, drift=eR*0.36;
+    const px=ex+Math.sin(p2*.85)*drift, py=eY+Math.cos(p2*.7)*drift*.65;
+    const iR=eR*.56, pR=iR*.52, gid=`g${Math.round(ph*10)%99}${idx}`;
+    return `<defs><radialGradient id="${gid}" cx="35%" cy="35%" r="60%"><stop offset="0%" stop-color="#60a5fa" stop-opacity=".95"/><stop offset="100%" stop-color="#1e3a5f" stop-opacity=".95"/></radialGradient><clipPath id="c${gid}"><circle cx="${ex.toFixed(1)}" cy="${eY.toFixed(1)}" r="${(eR-.5).toFixed(1)}"/></clipPath></defs>
+    <circle cx="${ex.toFixed(1)}" cy="${eY.toFixed(1)}" r="${eR.toFixed(1)}" fill="rgba(232,228,240,.93)" stroke="${color}" stroke-width="1.2" opacity="${alpha}"/>
+    <circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${iR.toFixed(1)}" fill="url(#${gid})" clip-path="url(#c${gid})"/>
+    <circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${pR.toFixed(1)}" fill="#080810" clip-path="url(#c${gid})"/>
+    <circle cx="${(px+pR*.38).toFixed(1)}" cy="${(py-pR*.38).toFixed(1)}" r="${(pR*.28).toFixed(1)}" fill="rgba(255,255,255,.92)" clip-path="url(#c${gid})"/>`;
+  }).join('');
+}
+
+function toggleGoogly(){
+  googly=!googly;
+  const btn=document.getElementById('googlyBtn');
+  if(btn){btn.style.border=googly?'1px solid rgba(167,139,250,.7)':'1px solid rgba(255,255,255,.15)';btn.style.boxShadow=googly?'0 0 14px rgba(167,139,250,.5)':'none';btn.style.background=googly?'rgba(124,58,237,.35)':'rgba(8,8,20,.75)';}
+  if(curRoutine)updateTargetPose();
+}
+
+// Canvas googly eyes (for live camera + sim)
+function drawGooglyCanvas(ctx,hcx,hcy,hR,ph){
+  const eR=hR*0.84, eS=hR*0.62, eY=hcy-hR*.1;
+  [-1,1].forEach((s,idx)=>{
+    const ex=hcx+s*eS, p2=ph+idx*1.9, drift=eR*.36;
+    const px=ex+Math.sin(p2*.85)*drift, py=eY+Math.cos(p2*.7)*drift*.65;
+    const iR=eR*.56, pR=iR*.52;
+    ctx.save();
+    ctx.beginPath();ctx.arc(ex,eY,eR,0,Math.PI*2);
+    ctx.fillStyle='rgba(232,228,240,.94)';ctx.shadowColor='#a78bfa';ctx.shadowBlur=8;ctx.fill();
+    ctx.strokeStyle='rgba(167,139,250,.8)';ctx.lineWidth=1.5;ctx.stroke();ctx.shadowBlur=0;
+    ctx.beginPath();ctx.arc(ex,eY,eR-1,0,Math.PI*2);ctx.clip();
+    const ig=ctx.createRadialGradient(px-iR*.2,py-iR*.2,iR*.05,px,py,iR);
+    ig.addColorStop(0,'rgba(96,165,250,.96)');ig.addColorStop(1,'rgba(30,58,95,.96)');
+    ctx.beginPath();ctx.arc(px,py,iR,0,Math.PI*2);ctx.fillStyle=ig;ctx.fill();
+    ctx.beginPath();ctx.arc(px,py,pR,0,Math.PI*2);ctx.fillStyle='#050510';ctx.fill();
+    ctx.beginPath();ctx.arc(px+pR*.38,py-pR*.38,pR*.28,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.93)';ctx.fill();
+    ctx.restore();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// POSE SCORE
+// ═══════════════════════════════════════════════════════════════════
+function calcScore(lm,poseName){
+  if(!lm||lm.length<29)return null;
+  const tgt=P[poseName]||P.stand_tall; let tot=0,cnt=0;
+  Object.keys(MPM).forEach(k=>{const ti=tgt[k],l=lm[MPM[k]];if(!ti||!l)return;const dx=ti[0]-(1-l.x),dy=ti[1]-l.y,d=Math.sqrt(dx*dx+dy*dy);tot+=Math.max(0,1-d*3.5);cnt++;});
+  return cnt>0?Math.round((tot/cnt)*100):50;
+}
+
+// Snapshot landmarks
+const SNAP_I={lSh:11,rSh:12,lEl:13,rEl:14,lWr:15,rWr:16,lHi:23,rHi:24,lKn:25,rKn:26,lAn:27,rAn:28,nose:0};
+function snapLM(lm){const s={};Object.entries(SNAP_I).forEach(([k,i])=>{const l=lm[i];if(l)s[k]=[parseFloat(l.x.toFixed(3)),parseFloat(l.y.toFixed(3))];});return s;}
+
+// ═══════════════════════════════════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════════════════════════════════
+function buildHome(){
+  const el=document.getElementById('homeContent');
+  const avgPR=Object.values(userPRs).length>0?Math.round(Object.values(userPRs).reduce((a,b)=>a+b,0)/Object.values(userPRs).length):null;
+  const lastBIQ=beatIQHist.length>0?Math.round(beatIQHist[beatIQHist.length-1].score)+'%':'—';
+  el.innerHTML=`<div class="home-header"><div class="logo-mark">M</div><div><div class="home-title">MovePR</div><div class="home-sub">ANAGAGE · POP & LOCK · BEAT SYNC</div></div></div>
+  <div class="stat-strip">
+    <div class="stat-pill"><div class="stat-v" style="color:var(--purpleL)">${avgPR||'—'}</div><div class="stat-l">AVG PR</div></div>
+    <div class="stat-pill"><div class="stat-v" style="color:var(--green)">${sesCount}</div><div class="stat-l">SESSIONS</div></div>
+    <div class="stat-pill"><div class="stat-v" style="color:var(--amber)">${lastBIQ}</div><div class="stat-l">BEAT IQ</div></div>
+  </div>
+  <div class="routine-grid">${ROUTINES.map(r=>`
+    <div class="rcard" onclick="selectRoutine('${r.id}')">
+      <div class="rcard-bar" style="background:${r.color}"></div>
+      <div class="rcard-body">
+        <div style="font-size:22px;margin-bottom:5px">${r.emoji}</div>
+        <div style="font-weight:700;font-size:13px;margin-bottom:2px">${r.title}</div>
+        <div style="font-size:9px;color:var(--dim);letter-spacing:.08em;margin-bottom:8px">${r.cat} · ${r.diff} · ${r.dur}</div>
+        <div class="rcard-pr" style="border:1px solid ${r.color}20"><span style="color:var(--dim);font-size:9px">INST PR</span><span style="font-weight:700;font-family:var(--mono);color:${r.color}">${r.instPR}%</span></div>
+        ${userPRs[r.id]?`<div class="rcard-pr" style="margin-top:4px;border:1px solid var(--bdr)"><span style="color:var(--dim);font-size:9px">YOUR PR</span><span style="font-weight:700;font-family:var(--mono);color:var(--greenL)">${userPRs[r.id]}%</span></div>`:''}
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PRACTICE SESSION
+// ═══════════════════════════════════════════════════════════════════
+function selectRoutine(id){
+  curRoutine=ROUTINES.find(r=>r.id===id);
+  if(!curRoutine)return;
+  showScreen('practice');
+  startSession();
+}
+
+async function startSession(){
+  if(!curRoutine)return;
+  sesScores=[];beatHits=[];recPoses=[];poseIdx=0;beatCnt=0;simPh=0;sesMode='loading';
+  document.getElementById('pracTitle').textContent=curRoutine.title;
+  document.getElementById('donePanel').classList.remove('vis');
+  document.getElementById('camOvr').style.display='flex';
+  document.getElementById('cdOvr').style.display='none';
+  document.getElementById('liveBadge').style.display='none';
+  document.getElementById('simBadge').style.display='none';
+  document.getElementById('tgtLbl').style.color=curRoutine.color;
+  document.getElementById('instPR').textContent=`INSTRUCTOR PR: ${curRoutine.instPR}%`;
+  document.getElementById('poseDots').innerHTML=curRoutine.poses.map((p,i)=>`<div class="pose-dot" style="width:${i===0?'16px':'5px'};background:${i===0?curRoutine.color:'var(--bdr)'}" id="dot${i}"></div>`).join('');
+  updateTargetPose();
+  bpm=curRoutine.bpm;
+  document.getElementById('bpmDisp').textContent=`${bpm} BPM`;
+  document.getElementById('bpmVal').textContent=bpm;
+  const got=await initMP();
+  simMode=!got;
+  document.getElementById('camOvr').style.display='none';
+  if(simMode)document.getElementById('simBadge').style.display='block';
+  startCD();
+}
+
+async function initMP(){
+  try{
+    if(typeof window.Pose==='undefined')return false;
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:480}},audio:false});
+    const vid=document.getElementById('userVideo');
+    vid.srcObject=stream;await vid.play();
+    const pose=new window.Pose({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}`});
+    pose.setOptions({modelComplexity:1,smoothLandmarks:true,minDetectionConfidence:0.6,minTrackingConfidence:0.5});
+    const canvas=document.getElementById('poseCanvas');
+    const ctx=canvas.getContext('2d');
+    pose.onResults(results=>{
+      if(sesMode!=='active'&&sesMode!=='countdown')return;
+      const W=canvas.width,H=canvas.height;
+      ctx.save();ctx.clearRect(0,0,W,H);ctx.scale(-1,1);ctx.translate(-W,0);
+      if(results.image)ctx.drawImage(results.image,0,0,W,H);
+      ctx.restore();
+      if(results.poseLandmarks){
+        curLM=results.poseLandmarks;
+        drawSkeleton(ctx,results.poseLandmarks,W,H);
+        if(googly){
+          const nose=results.poseLandmarks[0];
+          const lSh=results.poseLandmarks[11],rSh=results.poseLandmarks[12];
+          if(nose&&lSh&&rSh){const cx=(1-nose.x)*W,cy=nose.y*H,fw=Math.abs(rSh.x-lSh.x)*W*.55;gPhase+=.04;drawGooglyCanvas(ctx,cx,cy-fw*.38,fw*.16,gPhase);}
+        }
+        if(sesMode==='active'&&curRoutine){
+          const cp=curRoutine.poses[poseIdx];
+          if(cp){const s=calcScore(results.poseLandmarks,cp.p);if(s!==null){updateLiveBadge(s);sesScores.push(s);const now=Date.now()-sesStart,last=recPoses.length>0?recPoses[recPoses.length-1].time:-999;if(now-last>=80)recPoses.push({poseIdx,score:s,time:now,lm:snapLM(results.poseLandmarks)});}}
+        }
+      }
+    });
+    poseDetect=pose;
+    const cam=new window.Camera(vid,{onFrame:async()=>{if(poseDetect&&(sesMode==='active'||sesMode==='countdown'))try{await poseDetect.send({image:vid});}catch(e){}},width:640,height:480});
+    cam.start();camInst=cam;
+    return true;
+  }catch(e){console.warn('MP init failed:',e);return false;}
+}
+
+function drawSkeleton(ctx,lm,W,H){
+  const pt=i=>{const l=lm[i];return l?{x:(1-l.x)*W,y:l.y*H}:null;};
+  const pairs=[[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24],[23,25],[25,27],[24,26],[26,28],[27,29],[29,31],[28,30],[30,32]];
+  ctx.strokeStyle='#34d399';ctx.lineWidth=2.5;ctx.lineCap='round';
+  pairs.forEach(([a,b])=>{const pa=pt(a),pb=pt(b);if(!pa||!pb)return;ctx.beginPath();ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y);ctx.stroke();});
+  [0,11,12,13,14,15,16,23,24,25,26,27,28].forEach(i=>{const p=pt(i);if(!p)return;ctx.beginPath();ctx.arc(p.x,p.y,5,0,Math.PI*2);ctx.fillStyle='#34d399';ctx.fill();});
+}
+
+function startCD(){
+  sesMode='countdown';
+  document.getElementById('cdOvr').style.display='flex';
+  document.getElementById('cdNum').style.color=curRoutine.color;
+  let c=3;document.getElementById('cdNum').textContent=c;
+  cdTimer=setInterval(()=>{c--;if(c<=0){clearInterval(cdTimer);document.getElementById('cdOvr').style.display='none';document.getElementById('liveBadge').style.display='block';startActive();}else document.getElementById('cdNum').textContent=c;},1000);
+}
+
+function startActive(){
+  sesMode='active';sesStart=Date.now();startBeat();
+  const poses=curRoutine.poses, total=poses.reduce((s,p)=>s+p.d,0)*2;
+  let el=0;
+  sesIval=setInterval(()=>{
+    el+=100;
+    document.getElementById('sesTimer').textContent=`${Math.floor(el/60000)}:${String(Math.floor((el%60000)/1000)).padStart(2,'0')}`;
+    const loop=el%poses.reduce((s,p)=>s+p.d,0); let acc=0,ni=0;
+    poses.forEach((p,i)=>{acc+=p.d;if(loop>=acc-p.d&&loop<acc)ni=i;});
+    if(ni!==poseIdx){poseIdx=ni;updateTargetPose();}
+    else if(googly){gPhase+=.06;updateTargetPose();}
+    if(simMode){
+      simPh+=.03;const s=Math.min(99,Math.round(55+Math.sin(simPh)*22+Math.random()*12));
+      updateLiveBadge(s);sesScores.push(s);
+      const now=el,last=recPoses.length>0?recPoses[recPoses.length-1].time:-999;
+      if(now-last>=80){const pd=P[curRoutine.poses[ni].p]||P.stand_tall,j=.012,lm={};
+        Object.entries(pd).forEach(([k,v])=>{lm[k]=[parseFloat((v[0]+(Math.random()-.5)*j*(100-s)/40).toFixed(3)),parseFloat((v[1]+(Math.random()-.5)*j*(100-s)/40).toFixed(3))];});
+        recPoses.push({poseIdx:ni,score:s,time:now,lm});}
+      const canvas=document.getElementById('poseCanvas'),ctx=canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#02020a';ctx.fillRect(0,0,canvas.width,canvas.height);
+      const sp=['stand_tall','athletic_stance','crossover_l','crossover_r','arms_up'][Math.floor(simPh/2)%5];
+      drawSimFig(ctx,sp,canvas.width/2,canvas.height/2,'#34d399',.85,canvas.width,canvas.height);
+    }
+    if(el>=total){clearInterval(sesIval);endSession();}
+  },100);
+}
+
+function drawSimFig(ctx,poseName,cx,cy,color,alpha,W,H){
+  const pose=P[poseName]||P.stand_tall,sc=Math.min(W,H)*.85,ox=cx-sc*.5,oy=cy-sc*.45;
+  const pt=k=>({x:ox+(pose[k]?.[0]||.5)*sc,y:oy+(pose[k]?.[1]||.5)*sc*.9});
+  ctx.globalAlpha=alpha;ctx.strokeStyle=color;ctx.lineWidth=3;ctx.lineCap='round';
+  [['lSh','rSh'],['lHi','rHi'],['lSh','lHi'],['rSh','rHi'],['lSh','lEl'],['lEl','lWr'],['rSh','rEl'],['rEl','rWr'],['lHi','lKn'],['lKn','lAn'],['rHi','rKn'],['rKn','rAn']].forEach(([a,b])=>{const pa=pt(a),pb=pt(b);ctx.beginPath();ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y);ctx.stroke();});
+  const nose=pt('nose');ctx.beginPath();ctx.arc(nose.x,nose.y-12,14,0,Math.PI*2);ctx.stroke();
+  if(googly){gPhase+=.05;drawGooglyCanvas(ctx,nose.x,nose.y-12,14,gPhase);}
+  ctx.globalAlpha=1;
+}
+
+function updateTargetPose(){
+  if(!curRoutine)return;
+  const pose=curRoutine.poses[poseIdx];if(!pose)return;
+  document.getElementById('tgtName').textContent=pose.n;
+  drawStick(document.getElementById('tgtSVG'),pose.p,curRoutine.color,1,180,240);
+  curRoutine.poses.forEach((_,i)=>{const d=document.getElementById(`dot${i}`);if(d){d.style.width=i===poseIdx?'16px':'5px';d.style.background=i===poseIdx?curRoutine.color:'var(--bdr)';}});
+}
+
+function updateLiveBadge(s){
+  const el=document.getElementById('liveVal');el.textContent=s+'%';el.style.color=s>=80?'var(--green)':s>=60?'var(--amber)':'var(--red)';}
+
+function stopSession(){
+  clearInterval(sesIval);clearInterval(cdTimer);stopBeat();sesMode='idle';
+  if(camInst){try{camInst.stop();}catch(e){}camInst=null;}
+  if(poseDetect){try{poseDetect.close();}catch(e){}poseDetect=null;}
+  const vid=document.getElementById('userVideo');if(vid.srcObject){vid.srcObject.getTracks().forEach(t=>t.stop());vid.srcObject=null;}
+}
+
+function endSession(){
+  stopBeat();sesMode='done';
+  const avg=sesScores.length>0?Math.round(sesScores.reduce((a,b)=>a+b,0)/sesScores.length):0;
+  const peak=sesScores.length>0?Math.max(...sesScores):0;
+  const beatSync=beatHits.length>0?Math.round(beatHits.filter(h=>h.on).length/beatHits.length*100):Math.round(50+Math.random()*30);
+  document.getElementById('doneAvg').textContent=avg+'%';
+  document.getElementById('donePeak').textContent=peak+'%';
+  document.getElementById('doneBeat').textContent=beatSync+'%';
+  document.getElementById('doneTitle').textContent=peak>=(curRoutine.instPR||85)?'NEW PR! 🏆':avg>=70?'GREAT SESSION':'SESSION COMPLETE';
+  document.getElementById('doneTrophy').textContent=peak>=(curRoutine.instPR||85)?'🏆':avg>=70?'⭐':'💪';
+  if(curRoutine)userPRs[curRoutine.id]=Math.max(userPRs[curRoutine.id]||0,peak);
+  beatIQHist.push({score:beatSync,date:new Date()});
+  sesCount++;
+  lastSes={routine:curRoutine,avg,peak,beatSync,scores:[...sesScores],recPoses:[...recPoses],bpm};
+  document.getElementById('donePanel').classList.add('vis');
+  const f=document.getElementById('flash');f.style.opacity='1';setTimeout(()=>f.style.opacity='0',200);
+}
+
+function logSession(){
+  const el=document.getElementById('sesLog');if(!lastSes||!el)return;
+  if(el.innerHTML.includes('italic'))el.innerHTML='';
+  const {routine,avg,peak,beatSync}=lastSes;
+  el.innerHTML=`<div class="log-item" style="color:var(--txt)">${routine.emoji} ${routine.title} — AVG <span style="color:var(--purpleL)">${avg}%</span> · PEAK <span style="color:var(--green)">${peak}%</span> · BEAT <span style="color:var(--amber)">${beatSync}%</span></div>`+el.innerHTML;
+  const ds=document.getElementById('dbSessions');if(ds)ds.textContent=sesCount;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// BEAT ENGINE
+// ═══════════════════════════════════════════════════════════════════
+function startBeat(){
+  const ms=60000/bpm; let tickIdx=0;
+  const tl=document.getElementById('bTL');tl.innerHTML='';
+  for(let i=0;i<24;i++){const t=document.createElement('div');t.className='beat-tick';t.style.left=(i/24*100)+'%';t.id=`bt${i}`;tl.appendChild(t);}
+  beatIval=setInterval(()=>{
+    beatCnt++;
+    const p=document.getElementById('bPulse');if(p){p.style.transform='scale(1.8)';setTimeout(()=>p.style.transform='scale(1)',80);}
+    const ti=beatCnt%24, te=document.getElementById(`bt${ti}`);
+    if(te){const ls=sesScores[sesScores.length-1]||0;const on=ls>65;te.className=`beat-tick ${on?'hit':'miss'}`;beatHits.push({beat:beatCnt,on,score:ls});}
+  },ms);
+}
+function stopBeat(){clearInterval(beatIval);}
+function adjBPM(d){bpm=Math.max(60,Math.min(200,bpm+d));document.getElementById('bpmVal').textContent=bpm;document.getElementById('bpmDisp').textContent=`${bpm} BPM`;}
+
+// ═══════════════════════════════════════════════════════════════════
+// REMIX
+// ═══════════════════════════════════════════════════════════════════
+function buildRemix(){
+  const r=curRoutine||ROUTINES[2];
+  document.getElementById('remixLbl').textContent=r.title+' · '+r.bpm+' BPM';
+  document.getElementById('bpmVal').textContent=r.bpm;bpm=r.bpm;
+  drawStick(document.getElementById('rUserSVG'),r.poses[0].p,'#34d399',1,160,220);
+  drawStick(document.getElementById('rTplSVG'),r.poses[0].p,'#a78bfa',.7,160,220);
+  buildBeatMap();buildSyncScores();buildWhatIf();
+}
+
+function buildBeatMap(){
+  const el=document.getElementById('beatMap');el.innerHTML='';
+  const hits=lastSes?beatHits:[];
+  const n=Math.max(32,hits.length);
+  for(let i=0;i<Math.min(n,48);i++){
+    const h=hits[i],s=h?h.score:Math.round(50+Math.random()*40),on=h?h.on:s>65;
+    const col=document.createElement('div');col.className='beat-col';
+    const hh=Math.max(8,(s/100)*42),c=on?'var(--greenL)':s>50?'var(--amber)':'var(--red)';
+    col.innerHTML=`<div class="beat-block" style="height:${hh}px;background:${c};opacity:.8"></div>`;
+    if(i%4===0)col.innerHTML+=`<div class="beat-label">${i+1}</div>`;
+    el.appendChild(col);
+  }
+}
+
+function buildSyncScores(){
+  const avg=lastSes?lastSes.avg:72, bs=lastSes?lastSes.beatSync:68, imp=Math.round((100-avg)*.4);
+  document.getElementById('syncRow').innerHTML=[['AVG POSE',avg+'%',avg>=80?'var(--green)':avg>=60?'var(--amber)':'var(--red)'],['BEAT SYNC',bs+'%',bs>=80?'var(--green)':bs>=60?'var(--amber)':'var(--red)'],['PR POTENTIAL','+'+imp+'%','var(--purpleL)']].map(([l,v,c])=>`<div class="sync-m"><div class="sync-v" style="color:${c}">${v}</div><div class="sync-l">${l}</div></div>`).join('');
+}
+
+function buildWhatIf(){
+  const avg=lastSes?lastSes.avg:72, bs=lastSes?lastSes.beatSync:68, rn=curRoutine?.title||'Hip Hop';
+  const wi=Math.min(99,Math.round(avg+(100-bs)*.5)), imp=wi-avg;
+  document.getElementById('whatifText').innerHTML=`Your avg pose match: <strong style="color:var(--green)">${avg}%</strong>. Beat sync: <strong style="color:var(--amber)">${bs}%</strong>. If every transition landed on-beat, your score projects to <strong style="color:var(--purpleL)">${wi}%</strong> — a <strong>+${imp}%</strong> gain. The ghost above shows perfect ${rn} execution. That's your PR target.`;
+  const canvas=document.getElementById('whatifCanvas');
+  const ctx=canvas.getContext('2d');const W=canvas.offsetWidth||300;canvas.width=W;canvas.height=75;
+  ctx.clearRect(0,0,W,75);ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(0,0,W,75);
+  const pts=40,scores=Array.from({length:pts},(_,i)=>avg+(wi-avg)*(i/pts)+Math.sin(i*.8)*7+Math.random()*5);
+  ctx.beginPath();ctx.strokeStyle='#34d399';ctx.lineWidth=2;
+  scores.forEach((s,i)=>{const x=(i/(pts-1))*W,y=71-(s/100)*65;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});ctx.stroke();
+  ctx.beginPath();ctx.strokeStyle='#a78bfa';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+  for(let i=0;i<pts;i++){const x=(i/(pts-1))*W,y=71-(wi/100)*65+Math.sin(i*.4)*2;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#34d399';ctx.font='9px JetBrains Mono';ctx.fillText('YOUR',4,70);
+  ctx.fillStyle='#a78bfa';ctx.fillText('GHOST',4,14);
+}
+
+let rPhaseIdx=0, rPhase=0;
+function toggleRemix(){
+  if(remixPlaying){remixPlaying=false;clearInterval(remixIval);document.getElementById('playBtn').textContent='▶ PLAY REMIX';return;}
+  remixPlaying=true;rPhaseIdx=0;rPhase=0;document.getElementById('playBtn').textContent='⏹ STOP';
+  const r=curRoutine||ROUTINES[2],frames=lastSes&&recPoses.length>0?recPoses:null;
+  const total=frames?frames[frames.length-1].time:r.poses.reduce((s,p)=>s+p.d,0)*2;
+  let acc=0;const sched=r.poses.map((p,i)=>{const s2=acc;acc+=p.d;return{start:s2,end:acc,p:p.p,i};});const ld=acc;
+  function perfPose(t){const tm=t%ld;const sl=sched.find(s=>tm>=s.start&&tm<s.end)||sched[0];const nx=sched[(sl.i+1)%sched.length];const w=(tm-sl.start)/(sl.end-sl.start);return{from:sl.p,to:nx.p,t:w>0.85?(w-0.85)/0.15:0};}
+  const ps=Date.now();
+  remixIval=setInterval(()=>{
+    const el=Date.now()-ps;
+    if(frames&&frames.length>1){
+      const lt=el%total;let fA=frames[0],fB=frames[1];
+      for(let i=0;i<frames.length-1;i++){if(lt>=frames[i].time&&lt<frames[i+1].time){fA=frames[i];fB=frames[i+1];break;}}
+      const sp=fB.time-fA.time,t2=sp>0?Math.min(1,(lt-fA.time)/sp):0;
+      drawStickFromSnaps(document.getElementById('rUserSVG'),fA.lm,fB.lm,t2,'#34d399',1,160,220);
+      const ls=Math.round(fA.score+(fB.score-fA.score)*t2);
+      document.getElementById('rUserScore').textContent=`MATCH: ${ls}%`;
+    }else{rPhase+=.04;const fi=Math.floor(rPhase/1.5)%r.poses.length,ni=(fi+1)%r.poses.length,ft=(rPhase/1.5)%1;drawStickInterp(document.getElementById('rUserSVG'),r.poses[fi].p,r.poses[ni].p,ft,'#34d399',1,160,220);document.getElementById('rUserScore').textContent='MATCH: —';}
+    const{from,to,t:tt}=perfPose(el);drawStickInterp(document.getElementById('rTplSVG'),from,to,tt,'#a78bfa',.75,160,220);
+    document.getElementById('rTplScore').textContent=`TARGET: ${r.instPR}%`;
+    if(el>=total*2){/* loop naturally */}
+  },50);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DASHBOARD PASSWORD
+// ═══════════════════════════════════════════════════════════════════
+const DB_PW='bubby';let dbUnlocked=false,dbInited=false;
+
+function tryPW(){
+  const v=document.getElementById('pwInput').value.trim().toLowerCase();
+  if(v===DB_PW){
+    dbUnlocked=true;
+    document.getElementById('dbGate').classList.add('hidden');
+    document.getElementById('dbContent').classList.add('vis');
+    document.getElementById('pwErr').style.display='none';
+    if(!dbInited){dbInited=true;setTimeout(initAllCharts,80);}
+  }else{
+    document.getElementById('pwErr').style.display='block';
+    const i=document.getElementById('pwInput');i.style.borderColor='var(--red)';setTimeout(()=>i.style.borderColor='',1200);
+  }
+}
+document.getElementById('pwInput').addEventListener('keydown',e=>{if(e.key==='Enter')tryPW();});
+
+function lockDB(){
+  dbUnlocked=false;dbInited=false;
+  document.getElementById('dbGate').classList.remove('hidden');
+  document.getElementById('dbContent').classList.remove('vis');
+  document.getElementById('pwInput').value='';
+  stopBreath();stopSmile();
+}
+
+function showTab(id,btn){
+  document.querySelectorAll('.db-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.db-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DASHBOARD CHARTS
+// ═══════════════════════════════════════════════════════════════════
+const MO=["23-05","23-06","23-07","23-08","23-09","23-10","23-11","23-12","24-01","24-02","24-03","24-04","24-05","24-06","24-07","24-08","24-09","24-10","24-11","24-12","25-01","25-02","25-03","25-04","25-05","25-06","25-07","25-08","25-09","25-10","25-11","25-12","26-01","26-02","26-03"];
+const LG=[1,4,1,2,6,4,5,5,24,22,12,4,16,27,30,41,21,15,35,23,22,59,64,45,52,44,51,46,38,44,42,30,40,54,51];
+const CR=[28,25,12,18,19,19,17,14,21,20,14,27,27,11,13,6,15,9,16,15,17,5,15,13,16,15,13,28,15,17,15,14,16,12,11];
+const PE=[16,16,13,17,18,14,15,14,9,13,18,14,12,23,24,19,20,13,18,23,19,16,27,20,25,20,16,21,20,16,18,17,19,19,13];
+const IN=[19,18,11,7,13,7,16,21,12,12,10,8,14,6,8,1,4,9,6,5,10,3,3,3,2,5,2,6,5,3,3,0,3,1,3];
+const PR=[18,13,11,23,12,10,16,18,7,13,7,7,8,18,14,11,9,9,12,25,30,16,14,6,11,10,9,9,17,12,5,10,9,6,7];
+const SP=[8,9,10,16,7,8,8,5,9,6,7,9,5,6,9,5,7,9,8,4,8,11,11,6,9,4,5,4,4,4,10,5,5,4,7];
+const ST=[-1,5,-1,0,1,6,3,2,3,-2,0,3,1,-12,-8,-6,-2,1,-2,1,0,-14,-12,-7,-9,-5,-8,-6,-4,-9,-14,-11,-9,-7,-7];
+const AL=[320,310,280,340,290,300,310,295,380,420,350,310,360,490,520,610,470,400,550,480,530,780,840,720,760,690,720,710,620,680,810,690,740,820,790];
+const DBX={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#545474',font:{size:7},maxRotation:45,autoSkip:false},grid:{color:'#1c1c2e'}},y:{ticks:{color:'#545474',font:{size:8}},grid:{color:'#1c1c2e'}}}};
+const charts={};
+function mkChart(id,cfg){if(charts[id])try{charts[id].destroy();}catch(e){}const c=document.getElementById(id);if(!c)return;charts[id]=new Chart(c,cfg);}
+
+function initAllCharts(){
+  mkChart('arcChart',{type:'bar',data:{labels:MO,datasets:[{label:'Legal',data:LG,backgroundColor:'#378ADD',stack:'s'},{label:'Creative',data:CR,backgroundColor:'#D85A30',stack:'s'},{label:'Personal',data:PE,backgroundColor:'#7F77DD',stack:'s'},{label:'Intellectual',data:IN,backgroundColor:'#1D9E75',stack:'s'},{label:'Professional',data:PR,backgroundColor:'#BA7517',stack:'s'},{label:'Sport',data:SP,backgroundColor:'#888780',stack:'s'}]},options:{...DBX,scales:{x:{stacked:true,ticks:{color:'#545474',font:{size:7},maxRotation:45,autoSkip:false},grid:{color:'#1c1c2e'}},y:{stacked:true,max:100,ticks:{color:'#545474',font:{size:8}},grid:{color:'#1c1c2e'}}}}});
+  mkChart('stressChart',{type:'bar',data:{labels:MO,datasets:[{data:ST,backgroundColor:ST.map(v=>v>=0?'rgba(16,185,129,.7)':'rgba(239,68,68,.7)'),borderRadius:2}]},options:{...DBX}});
+  mkChart('lengthChart',{type:'line',data:{labels:MO,datasets:[{data:AL,borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,.1)',fill:true,tension:0.4,pointRadius:2}]},options:{...DBX}});
+  mkChart('sportChart',{type:'line',data:{labels:MO,datasets:[{data:SP,borderColor:'#10b981',backgroundColor:'rgba(16,185,129,.15)',fill:true,tension:0.4,pointRadius:2}]},options:{...DBX,scales:{...DBX.scales,y:{...DBX.scales.y,min:0,max:20}}}});
+  // WeCoin
+  const days=Array.from({length:30},(_,i)=>(i+1)*10);
+  const users=days.map(d=>Math.log10(Math.max(1,Math.min(1e9,Math.round(1000*Math.pow(10,(d/300)*9))))));
+  mkChart('wcGrowthChart',{type:'line',data:{labels:days.map(d=>`D${d}`),datasets:[{data:users,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,.1)',fill:true,tension:0.4,pointRadius:2}]},options:{...DBX,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{const v=Math.round(Math.pow(10,c.raw));return v>=1e9?(v/1e9).toFixed(1)+'B':v>=1e6?(v/1e6).toFixed(1)+'M':v.toLocaleString();}}}},scales:{x:{ticks:{color:'#545474',font:{size:7}},grid:{color:'#1c1c2e'}},y:{ticks:{color:'#545474',font:{size:8},callback:v=>['1','10','100','1K','10K','100K','1M','10M','100M','1B'][Math.round(v)]||''},grid:{color:'#1c1c2e'}}}}});
+  const eas=Array.from({length:11},(_,i)=>i);
+  mkChart('wcRewardChart',{type:'bar',data:{labels:eas.map(e=>`${e}EA`),datasets:[{data:eas.map(e=>3*e*Math.pow(2,e)),backgroundColor:eas.map(e=>`hsl(${260+e*10},70%,${50+e*3}%)`),borderRadius:3}]},options:{...DBX,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw.toLocaleString()+' WEC'}}}}});
+  // Mine network seed
+  initMine();
+  // Beat IQ
+  refreshBeatIQChart();
+  // Calendar momentum
+  renderMomentum();
+}
+
+function refreshBeatIQChart(){
+  const hist=beatIQHist.length>0?beatIQHist.map(h=>h.score):[0];
+  mkChart('beatIQChart',{type:'line',data:{labels:hist.map((_,i)=>`S${i+1}`),datasets:[{data:hist,borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,.15)',fill:true,tension:0.4,pointRadius:3}]},options:{...DBX,scales:{...DBX.scales,y:{...DBX.scales.y,min:0,max:100}}}});
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MINE TAB
+// ═══════════════════════════════════════════════════════════════════
+let mPRs=0,mEAs=0,netData=[];let netIval=null;
+function initMine(){
+  netData=Array.from({length:60},(_,i)=>({t:i,prs:Math.floor(Math.random()*4),eas:Math.floor(Math.random()*6),u:Math.round(20+i*.8+Math.random()*2)}));
+  renderNetChart();
+  netIval=setInterval(()=>{const l=netData[netData.length-1];netData.push({t:l.t+1,prs:Math.max(0,l.prs+Math.round((Math.random()-.45)*2)),eas:Math.max(0,l.eas+Math.round((Math.random()-.45)*2)),u:Math.min(10000,l.u+Math.round(Math.random()*3))});if(netData.length>80)netData.shift();renderNetChart();},5000);
+}
+function renderNetChart(){
+  mkChart('netChart',{type:'line',data:{labels:netData.map(d=>`T${d.t}`),datasets:[{label:'PRs',data:netData.map(d=>d.prs),borderColor:'#f59e0b',tension:0.4,pointRadius:0,yAxisID:'y'},{label:'EAs',data:netData.map(d=>d.eas),borderColor:'#10b981',tension:0.4,pointRadius:0,yAxisID:'y'},{label:'Users',data:netData.map(d=>d.u),borderColor:'#a78bfa',tension:0.4,pointRadius:0,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#545474',font:{size:8},boxWidth:8}}},scales:{x:{ticks:{color:'#545474',font:{size:7},maxTicksLimit:8},grid:{color:'#1c1c2e'}},y:{ticks:{color:'#545474',font:{size:8}},grid:{color:'#1c1c2e'},position:'left'},y2:{ticks:{color:'#a78bfa',font:{size:8}},grid:{display:false},position:'right'}}}});
+}
+function mineUpdateStats(){
+  const wec=Math.floor(Math.min(mPRs,10)*Math.min(mEAs,10)*Math.pow(2,Math.min(mEAs,10)));
+  document.getElementById('mPRs').textContent=mPRs;
+  document.getElementById('mEAs').textContent=mEAs;
+  document.getElementById('mWEC').textContent=wec>=1000?(wec/1000).toFixed(1)+'K':wec;
+  document.getElementById('mineNote').textContent=`${Math.min(mPRs,10)} PRs × ${Math.min(mEAs,10)} EAs × 2^${Math.min(mEAs,10)} = ${wec.toLocaleString()} WEC`;
+}
+function minePostPR(){
+  if(mPRs>=10){mineLog('⚠ Daily PR cap reached (10)','var(--red)');return;}
+  const d=document.getElementById('prDesc')?.value.trim()||'Movement PR';mPRs++;
+  mineLog(`⚡ PR #${mPRs} — "${d}" · awaiting ${Math.max(0,10-mEAs)} more EAs`,'var(--amber)');
+  document.getElementById('prDesc').value='';mineUpdateStats();
+  setTimeout(()=>{const n=Math.floor(Math.random()*4)+1;for(let i=0;i<n;i++)setTimeout(()=>{mEAs=Math.min(10,mEAs+1);mineUpdateStats();mineLog(`👏 EA received · EAs: ${mEAs}`,'var(--green)');},i*900);},1200);
+}
+function mineGiveEA(){mineLog(`👏 EA given to peer — builds network trust`,'var(--purpleL)');}
+function mineLog(msg,color='var(--dim)'){
+  const el=document.getElementById('mineLog');if(!el)return;
+  if(el.querySelector('[style*="italic"]'))el.innerHTML='';
+  el.innerHTML=`<div class="log-item" style="color:${color}">${new Date().toLocaleTimeString()} — ${msg}</div>`+el.innerHTML;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SMILE TAB
+// ═══════════════════════════════════════════════════════════════════
+let stMode='idle',stFM=null,stCam=null,stSmoothed=0,stSmiling=false;
+let stHoldStart=null,stPRs=0,stTTT=0,stPeak=0,stHist=[],stLastPR=0;
+const ST_THRESH=0.30,ST_HOLD=1500;
+let breathInSmile=false;
+
+function toggleBreathInSmile(){
+  breathInSmile=document.getElementById('breathToggle').checked;
+  if(breathInSmile&&stMode!=='idle')startBreath();
+  else if(!breathInSmile)stopBreath();
+}
+
+async function startSmile(){
+  if(stMode==='live'||stMode==='sim')return;
+  const wrap=document.getElementById('smileCamWrap');
+  const canvas=document.getElementById('smileCanvas');
+  canvas.width=wrap.clientWidth||320;canvas.height=200;
+  document.getElementById('smileOvr').style.display='none';
+  document.getElementById('smileScoreBadge').style.display='block';
+  document.getElementById('smileHoldBar').style.display='block';
+  if(breathInSmile)startBreath();
+  if(typeof window.FaceMesh==='undefined'){runSmileSim(canvas);return;}
+  let stream;try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:320,height:200},audio:false});}catch(e){runSmileSim(canvas);return;}
+  let vid=document.getElementById('smileVid');
+  if(!vid){vid=document.createElement('video');vid.id='smileVid';vid.style.display='none';vid.autoplay=true;vid.playsInline=true;vid.muted=true;document.body.appendChild(vid);}
+  vid.srcObject=stream;await vid.play();
+  const ctx=canvas.getContext('2d');
+  const fm=new window.FaceMesh({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
+  fm.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.55,minTrackingConfidence:0.55});
+  fm.onResults=results=>{
+    const W=canvas.width,H=canvas.height;
+    ctx.save();ctx.clearRect(0,0,W,H);ctx.scale(-1,1);ctx.translate(-W,0);
+    if(results.image)ctx.drawImage(results.image,0,0,W,H);ctx.restore();
+    if(results.multiFaceLandmarks?.[0]){const lm=results.multiFaceLandmarks[0];processSmile(smileScore(lm));}
+    else processSmile(stSmoothed*.85);
+  };
+  stFM=fm;stCam=new window.Camera(vid,{onFrame:async()=>{if(stFM)try{await stFM.send({image:vid});}catch(e){}},width:320,height:200});
+  stCam.start();stMode='live';
+}
+
+function smileScore(lm){
+  try{const fH=Math.abs(lm[152].y-lm[1].y);if(fH<.01)return 0;
+    const elev=((lm[13].y+lm[14].y)/2-(lm[61].y+lm[291].y)/2)/fH;
+    const mW=lm[291].x-lm[61].x,fW=lm[454].x-lm[234].x;
+    const wide=fW>0?Math.max(0,(mW/fW-.36)/.18):0;
+    const gap=Math.max(0,(Math.abs(lm[14].y-lm[13].y)/fH-.005)/.035);
+    return Math.min(1,Math.max(0,elev*14*.55+wide*.30+gap*.15));}catch{return 0;}
+}
+
+function runSmileSim(canvas){
+  stMode='sim';const ctx=canvas.getContext('2d');let ph=0;
+  const tick=()=>{if(stMode==='idle')return;ph+=.04;
+    const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,fw=Math.min(W,H)*.32;
+    ctx.clearRect(0,0,W,H);ctx.fillStyle='#02020a';ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#242436';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(cx,cy,fw*.65,fw*.85,0,0,Math.PI*2);ctx.stroke();
+    const sc=Math.max(0,.45+Math.sin(ph*.7)*.38);
+    [[cx-fw*.22,cy-fw*.18],[cx+fw*.22,cy-fw*.18]].forEach(([ex,ey])=>{
+      ctx.beginPath();ctx.ellipse(ex,ey,fw*.1,fw*.12,0,0,Math.PI*2);ctx.fillStyle='rgba(232,228,240,.9)';ctx.fill();
+      ctx.beginPath();ctx.arc(ex+fw*.02,ey+fw*.02,fw*.055,0,Math.PI*2);ctx.fillStyle='#1a3060';ctx.fill();
+      ctx.beginPath();ctx.arc(ex+fw*.02,ey+fw*.02,fw*.03,0,Math.PI*2);ctx.fillStyle='#050510';ctx.fill();
+    });
+    const mY=cy+fw*.22,mW=fw*.3+sc*fw*.12,cv=sc*fw*.28;
+    ctx.beginPath();ctx.moveTo(cx-mW,mY);ctx.quadraticCurveTo(cx,mY+cv,cx+mW,mY);ctx.strokeStyle=sc>.5?'#f59e0b':'#a78bfa';ctx.lineWidth=2.5;ctx.stroke();
+    processSmile(sc);requestAnimationFrame(tick);};tick();
+}
+
+function processSmile(raw){
+  stSmoothed+=(raw-stSmoothed)*.18;const pct=Math.round(stSmoothed*100);
+  const sn=document.getElementById('smileScoreNum');if(sn){sn.textContent=pct;sn.style.color=pct>=70?'#f59e0b':pct>=40?'#a78bfa':'#34d399';}
+  if(pct>stPeak){stPeak=pct;const el=document.getElementById('stPeak');if(el)el.textContent=pct+'%';}
+  stSmiling=stSmoothed>=ST_THRESH;
+  if(stSmiling){
+    if(!stHoldStart)stHoldStart=Date.now();stTTT+=.05;
+    const hs=Math.min(1,(Date.now()-stHoldStart)/ST_HOLD);
+    const hf=document.getElementById('smileHoldFill');if(hf)hf.style.width=Math.round(hs*100)+'%';
+    const te=document.getElementById('stTTT');if(te)te.textContent=Math.round(stTTT)+'s';
+    if(Date.now()-stHoldStart>=ST_HOLD&&Date.now()-stLastPR>ST_HOLD+300)smileEarnPR(pct);
+  }else{stHoldStart=null;const hf=document.getElementById('smileHoldFill');if(hf)hf.style.width='0%';}
+  stHist.push(pct);if(stHist.length>120)stHist.shift();drawSmileHist();
+}
+
+function smileEarnPR(score){
+  stLastPR=Date.now();stHoldStart=Date.now();stPRs++;
+  document.getElementById('stPRs').textContent=stPRs;
+  document.getElementById('stGoal').textContent=stPRs+'/30';
+  const el=document.getElementById('smileLog');if(el){if(el.querySelector('[style*="italic"]'))el.innerHTML='';el.innerHTML=`<div class="log-item" style="color:var(--amber)">${new Date().toLocaleTimeString()} — PR #${stPRs} · Score ${score}%</div>`+el.innerHTML;}
+}
+
+function drawSmileHist(){
+  const canvas=document.getElementById('smileHistChart');if(!canvas)return;
+  const ctx=canvas.getContext('2d');const W=canvas.offsetWidth||300;canvas.width=W;canvas.height=48;
+  ctx.clearRect(0,0,W,48);const hist=stHist.slice(-60);const bw=W/hist.length;
+  hist.forEach((s,i)=>{const bh=Math.max(2,(s/100)*44);ctx.fillStyle=s>=70?'#f59e0b':s>=40?'#a78bfa':'#34d399';ctx.globalAlpha=.75;ctx.fillRect(i*bw+.5,48-bh,bw-1,bh);});ctx.globalAlpha=1;
+  ctx.strokeStyle='rgba(245,158,11,.2)';ctx.lineWidth=1;ctx.setLineDash([3,3]);const ty=48-(ST_THRESH*48);ctx.beginPath();ctx.moveTo(0,ty);ctx.lineTo(W,ty);ctx.stroke();ctx.setLineDash([]);
+}
+
+function stopSmile(){
+  stMode='idle';if(stCam){try{stCam.stop();}catch(e){}stCam=null;}if(stFM){try{stFM.close();}catch(e){}stFM=null;}
+  const vid=document.getElementById('smileVid');if(vid?.srcObject){vid.srcObject.getTracks().forEach(t=>t.stop());vid.srcObject=null;}
+  document.getElementById('smileOvr').style.display='flex';
+  document.getElementById('smileScoreBadge').style.display='none';
+  document.getElementById('smileHoldBar').style.display='none';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// BREATH TRACKER
+// ═══════════════════════════════════════════════════════════════════
+let brCtx=null,brAnal=null,brSrc=null,brRunning=false,brRaf=null;
+let brEnvData=[],brConData=[],brBeatTimes=[],brBPM=0;
+let brTech=null,brPhaseIdx=0,brPhTimer=null;
+let brSpCtx=null,brEnCtx=null,brTlCtx=null;
+const TECHS={
+  '4-7-8':[{l:'INHALE',d:4,c:'#10b981'},{l:'HOLD',d:7,c:'#f59e0b'},{l:'EXHALE',d:8,c:'#a78bfa'}],
+  'box':[{l:'INHALE',d:4,c:'#10b981'},{l:'HOLD IN',d:4,c:'#f59e0b'},{l:'EXHALE',d:4,c:'#a78bfa'},{l:'HOLD OUT',d:4,c:'#3b82f6'}],
+  'wim':[{l:'INHALE',d:2,c:'#10b981'},{l:'EXHALE',d:1,c:'#a78bfa'}],
+  'coh':[{l:'INHALE',d:2.75,c:'#10b981'},{l:'HOLD',d:0.25,c:'#f59e0b'},{l:'EXHALE',d:2.75,c:'#a78bfa'},{l:'HOLD',d:0.25,c:'#3b82f6'}],
+};
+async function startBreath(){
+  if(brRunning)return;brEnvData=[];brConData=[];
+  try{
+    brCtx=new(window.AudioContext||window.webkitAudioContext)();
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    brSrc=brCtx.createMediaStreamSource(stream);
+    brAnal=brCtx.createAnalyser();brAnal.fftSize=2048;brAnal.smoothingTimeConstant=0.8;
+    brSrc.connect(brAnal);brRunning=true;
+    const btn=document.getElementById('brStartBtn');if(btn)btn.style.background='var(--dim)';
+    brLog('🎙 Microphone active — listening…','var(--green)');
+    brRaf=requestAnimationFrame(brLoop);
+  }catch(e){brLog('❌ Mic unavailable: '+e.message,'var(--red)');}
+}
+function stopBreath(){
+  brRunning=false;if(brRaf)cancelAnimationFrame(brRaf);
+  if(brCtx){try{brCtx.close();}catch(e){}brCtx=null;}brSrc=null;brAnal=null;
+  clearTimeout(brPhTimer);brTech=null;
+  document.querySelectorAll('.tech-btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById('brStartBtn');if(btn)btn.style.background='var(--green)';
+  document.getElementById('brPhase').textContent='—';document.getElementById('brCount').textContent='—';document.getElementById('brProg').style.width='0%';
+}
+function brLoop(){
+  if(!brRunning||!brAnal)return;
+  const buf=brAnal.frequencyBinCount;
+  const fd=new Uint8Array(buf);const td=new Float32Array(buf);
+  brAnal.getByteFrequencyData(fd);brAnal.getFloatTimeDomainData(td);
+  const rms=Math.sqrt(td.reduce((s,x)=>s+x*x,0)/td.length);
+  brEnvData.push(rms);if(brEnvData.length>300)brEnvData.shift();
+  if(rms>0.012&&(brBeatTimes.length===0||Date.now()-brBeatTimes[brBeatTimes.length-1]>600)){
+    brBeatTimes.push(Date.now());if(brBeatTimes.length>8)brBeatTimes.shift();
+    if(brBeatTimes.length>=2){const ints=[];for(let i=1;i<brBeatTimes.length;i++)ints.push(brBeatTimes[i]-brBeatTimes[i-1]);brBPM=Math.round(60000/(ints.reduce((a,b)=>a+b,0)/ints.length));}
+  }
+  const cl=classifyBreath(fd,rms);brConData.push(cl);if(brConData.length>200)brConData.shift();
+  const te=document.getElementById('brType'),re=document.getElementById('brRate'),ce=document.getElementById('brClarity');
+  if(te){te.textContent=cl.label;te.style.color=cl.color;}
+  if(re)re.textContent=brBPM>0?brBPM:'—';
+  if(ce){ce.textContent=cl.clarity;ce.style.color=cl.clarity==='Clear'?'#34d399':cl.clarity==='Mild'?'#f59e0b':'#ef4444';}
+  if(cl.type!=='normal'&&cl.rms>0.015&&(brConData.length<2||brConData[brConData.length-2].type==='normal'))
+    brLog(`${cl.icon} ${cl.label} — ${cl.desc}`,cl.color);
+  drawSpectro(fd);drawEnvelope();drawTimeline();
+  brRaf=requestAnimationFrame(brLoop);
+}
+function classifyBreath(fd,rms){
+  const sr=brCtx.sampleRate,bHz=sr/brAnal.fftSize;
+  const band=(lo,hi)=>{const b1=Math.floor(lo/bHz),b2=Math.min(Math.ceil(hi/bHz),fd.length-1);let s=0;for(let i=b1;i<=b2;i++)s+=fd[i];return b2>b1?s/(b2-b1):0;};
+  const low=band(80,300),mid=band(300,800),hi=band(800,2000),vhi=band(2000,6000);
+  const tot=fd.reduce((s,v)=>s+v,0)/fd.length;
+  const flux=fd.reduce((s,v,i)=>s+Math.abs(v-(fd[i-1]||v)),0)/fd.length;
+  if(rms<0.003)return{type:'silence',label:'Silence',icon:'⬜',color:'#242436',clarity:'Clear',desc:'No significant audio',rms};
+  if(hi>80&&vhi>60&&flux>8)return{type:'fine_crackle',label:'Fine Rales',icon:'🟣',color:'#a78bfa',clarity:'Congested',desc:'High-freq discontinuous — thin secretions / fibrosis',rms};
+  if(mid>90&&hi>50&&flux>6)return{type:'coarse_crackle',label:'Coarse Rales',icon:'🟡',color:'#f59e0b',clarity:'Moderate',desc:'Mid-freq discontinuous — mucus in larger airways',rms};
+  if(mid>100&&hi>40&&flux<4&&tot>40)return{type:'wheeze',label:'Wheeze',icon:'🔵',color:'#3b82f6',clarity:'Mild',desc:'Continuous musical — bronchospasm / asthma',rms};
+  if(low>110&&mid>60&&flux<5)return{type:'rhonchi',label:'Rhonchi',icon:'🔴',color:'#ef4444',clarity:'Congested',desc:'Low continuous — secretions in large airways',rms};
+  if(vhi>90&&tot>35&&flux<6)return{type:'stridor',label:'Stridor',icon:'🩷',color:'#ec4899',clarity:'Severe',desc:'High inspiratory — upper airway obstruction',rms};
+  return{type:'normal',label:'Normal',icon:'🟢',color:'#34d399',clarity:'Clear',desc:'Clear breath sounds',rms};
+}
+function drawSpectro(fd){
+  const canvas=document.getElementById('brSpectro');if(!canvas)return;
+  if(!brSpCtx)brSpCtx=canvas.getContext('2d');
+  const W=canvas.width=canvas.offsetWidth||300,H=75;canvas.height=H;
+  const img=brSpCtx.getImageData(1,0,W-1,H);brSpCtx.putImageData(img,0,0);brSpCtx.clearRect(W-1,0,1,H);
+  const sr=brCtx?.sampleRate||44100,n=Math.min(fd.length,Math.floor(fd.length*4000/sr*2));
+  for(let i=0;i<H;i++){const bi=Math.floor((H-1-i)/H*n),v=fd[bi]||0,t=v/255;const r=Math.round(t>.6?255:t>.3?t*300:t*100),g=Math.round(t>.5?255*t:t*180),b=Math.round(t<.4?200*t:50);brSpCtx.fillStyle=`rgba(${r},${g},${b},${.3+t*.7})`;brSpCtx.fillRect(W-1,i,1,1);}
+}
+function drawEnvelope(){
+  const canvas=document.getElementById('brEnvelope');if(!canvas)return;
+  if(!brEnCtx)brEnCtx=canvas.getContext('2d');
+  const W=canvas.width=canvas.offsetWidth||300,H=55;canvas.height=H;
+  brEnCtx.clearRect(0,0,W,H);brEnCtx.fillStyle='#020208';brEnCtx.fillRect(0,0,W,H);
+  const data=brEnvData.slice(-W),mx=Math.max(.05,...data);
+  brEnCtx.strokeStyle='#34d399';brEnCtx.lineWidth=1.5;brEnCtx.beginPath();
+  data.forEach((v,i)=>{const x=(i/data.length)*W,y=H-(v/mx)*(H-4)-2;i===0?brEnCtx.moveTo(x,y):brEnCtx.lineTo(x,y);});brEnCtx.stroke();
+  const ty=H-(.012/mx)*(H-4)-2;brEnCtx.strokeStyle='rgba(245,158,11,.3)';brEnCtx.lineWidth=1;brEnCtx.setLineDash([3,3]);brEnCtx.beginPath();brEnCtx.moveTo(0,ty);brEnCtx.lineTo(W,ty);brEnCtx.stroke();brEnCtx.setLineDash([]);
+}
+function drawTimeline(){
+  const canvas=document.getElementById('brTimeline');if(!canvas)return;
+  if(!brTlCtx)brTlCtx=canvas.getContext('2d');
+  const W=canvas.width=canvas.offsetWidth||300,H=48;canvas.height=H;
+  brTlCtx.clearRect(0,0,W,H);brTlCtx.fillStyle='#020208';brTlCtx.fillRect(0,0,W,H);
+  const cols={normal:'#34d399',fine_crackle:'#a78bfa',coarse_crackle:'#f59e0b',wheeze:'#3b82f6',rhonchi:'#ef4444',stridor:'#ec4899',silence:'#181828'};
+  const data=brConData.slice(-W);
+  data.forEach((d,i)=>{brTlCtx.fillStyle=cols[d.type]||'#242436';const h=Math.max(2,Math.min(H-2,(d.rms/.05)*H));brTlCtx.fillRect(i,H-h,1,h);});
+}
+function brLog(msg,color='var(--dim)'){
+  const el=document.getElementById('brLog');if(!el)return;
+  if(el.querySelector('[style*="italic"]'))el.innerHTML='';
+  el.innerHTML=`<div class="log-item" style="color:${color}">${new Date().toLocaleTimeString()} — ${msg}</div>`+el.innerHTML;
+}
+function setTech(key){
+  document.querySelectorAll('.tech-btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById('bt-'+key);if(btn)btn.classList.add('active');
+  clearTimeout(brPhTimer);brTech=key;brPhaseIdx=0;runBrPhase();
+}
+function runBrPhase(){
+  if(!brTech)return;const phases=TECHS[brTech],ph=phases[brPhaseIdx%phases.length],dur=ph.d*1000;
+  const pl=document.getElementById('brPhase'),pf=document.getElementById('brProg');
+  if(pl){pl.textContent=ph.l;pl.style.color=ph.c;}if(pf)pf.style.background=ph.c;
+  const start=Date.now();
+  const tick=()=>{if(!brTech)return;const el=Date.now()-start,prog=Math.min(1,el/dur);
+    const cc=document.getElementById('brCount');if(cc)cc.textContent=Math.ceil((dur-el)/1000);
+    if(pf)pf.style.width=Math.round(prog*100)+'%';
+    if(el<dur)brPhTimer=setTimeout(tick,100);else{brPhaseIdx++;runBrPhase();}};tick();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CALENDAR / NEXT TAB
+// ═══════════════════════════════════════════════════════════════════
+let tasks=[], momentumData=Array.from({length:14},()=>Math.floor(Math.random()*6));
+// Pre-seed with example tasks
+tasks=[
+  {id:1,title:'File response to HOA motion',pri:'urgent',cat:'legal',time:60,done:false,date:new Date()},
+  {id:2,title:'AM Bootup — 30 smile PRs',pri:'high',cat:'health',time:30,done:false,date:new Date()},
+  {id:3,title:'Review settlement terms with counsel',pri:'high',cat:'legal',time:60,done:false,date:new Date()},
+  {id:4,title:'Gus, Sam, Franky — family dinner',pri:'high',cat:'family',time:90,done:false,date:new Date()},
+  {id:5,title:'Update WeCoin whitepaper draft',pri:'med',cat:'creative',time:45,done:false,date:new Date()},
+  {id:6,title:'Review patent claims — OFIA system',pri:'med',cat:'work',time:30,done:false,date:new Date()},
+  {id:7,title:'Breath training session',pri:'med',cat:'health',time:15,done:false,date:new Date()},
+];
+let nextTaskId=8;
+
+function addTask(){
+  const title=document.getElementById('taskTitle').value.trim();if(!title)return;
+  const pri=document.getElementById('taskPri').value,cat=document.getElementById('taskCat').value,time=parseInt(document.getElementById('taskTime').value)||15;
+  tasks.push({id:nextTaskId++,title,pri,cat,time,done:false,date:new Date()});
+  document.getElementById('taskTitle').value='';renderTasks();
+}
+
+function toggleTask(id){
+  const t=tasks.find(t=>t.id===id);if(!t)return;t.done=!t.done;
+  if(t.done){momentumData.push(1);if(momentumData.length>14)momentumData.shift();}
+  renderTasks();renderMomentum();updateCalScore();
+}
+
+function renderTasks(){
+  ['urgent','high','med','low'].forEach(pri=>{
+    const cont=document.getElementById('task'+pri.charAt(0).toUpperCase()+pri.slice(1));if(!cont)return;
+    const priTasks=tasks.filter(t=>t.pri===pri).sort((a,b)=>a.done-b.done);
+    cont.innerHTML=priTasks.length===0?`<div style="font-size:10px;color:var(--dim2);padding:6px 0;font-style:italic">No ${pri} tasks</div>`
+    :priTasks.map(t=>{
+      const pColors={urgent:'p-urgent',high:'p-high',med:'p-med',low:'p-low'};
+      const catIcons={legal:'⚖️',family:'👨‍👧',health:'💪',work:'💼',creative:'🎨',financial:'💰',other:'📌'};
+      return `<div class="task-card${t.done?' done':''}" onclick="toggleTask(${t.id})">
+        <div class="task-check${t.done?' checked':''}">${t.done?'<svg width="10" height="10" viewBox="0 0 10 10"><polyline points="2,5 4,8 8,2" stroke="white" stroke-width="1.5" fill="none"/></svg>':''}</div>
+        <div class="task-body"><div class="task-title">${t.title}</div><div class="task-meta">${catIcons[t.cat]||'📌'} ${t.cat} · ⏱ ${t.time} min</div></div>
+        <div class="task-priority ${pColors[t.pri]}">${t.pri.toUpperCase()}</div>
+      </div>`;
+    }).join('');
+  });
+  updateCalScore();updateAIRec();
+}
+
+function updateCalScore(){
+  const done=tasks.filter(t=>t.done).length,total=tasks.length,mom=total>0?Math.round(done/total*100):0;
+  document.getElementById('calComplete').textContent=done;
+  document.getElementById('calTotal').textContent=total;
+  document.getElementById('calMomentum').textContent=mom+'%';
+}
+
+function renderMomentum(){
+  const canvas=document.getElementById('momentumChart');if(!canvas)return;
+  const ctx=canvas.getContext('2d');const W=canvas.offsetWidth||300;canvas.width=W;canvas.height=55;
+  ctx.clearRect(0,0,W,55);ctx.fillStyle='var(--card2)';ctx.fillRect(0,0,W,55);
+  const data=momentumData.slice(-14),bw=W/14;
+  data.forEach((v,i)=>{const h=Math.max(3,(v/10)*50);ctx.fillStyle=v>=7?'#10b981':v>=4?'#f59e0b':'#5a5a80';ctx.globalAlpha=.8;ctx.beginPath();ctx.roundRect(i*bw+2,55-h,bw-4,h,3);ctx.fill();});ctx.globalAlpha=1;
+  ctx.fillStyle='var(--dim)';ctx.font='8px Space Grotesk';ctx.fillText('14 days',4,12);ctx.fillText('today →',W-42,12);
+}
+
+function updateAIRec(){
+  const urgent=tasks.filter(t=>!t.done&&t.pri==='urgent');
+  const health=tasks.filter(t=>!t.done&&t.cat==='health');
+  const legal=tasks.filter(t=>!t.done&&t.cat==='legal');
+  const done=tasks.filter(t=>t.done).length,total=tasks.length;
+  let rec='';
+  if(urgent.length>0)rec=`<strong style="color:var(--red)">DO FIRST:</strong> "${urgent[0].title}" — this is urgent and blocks other work.<br><br>`;
+  if(health.length>0&&done===0)rec+=`<strong style="color:var(--green)">START WITH HEALTH:</strong> "${health[0].title}" — your morning bootup primes the mind for everything else.<br><br>`;
+  if(legal.length>0)rec+=`<strong style="color:var(--blue)">LEGAL PRIORITY:</strong> ${legal.length} legal task${legal.length>1?'s':''} pending. These carry the most consequence — time-box ${Math.min(legal.length*60,120)} min today.<br><br>`;
+  if(done>0&&total>0)rec+=`<strong style="color:var(--purpleL)">MOMENTUM:</strong> ${done}/${total} tasks complete today (${Math.round(done/total*100)}%). ${done>=total*.5?'You\'re past the halfway mark — keep the streak.':'Focus blocks of 25 min will get you there.'}`;
+  if(!rec)rec='Add tasks to receive an AI recommendation based on your priorities and patterns.';
+  document.getElementById('aiRec').innerHTML=rec;
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // PROTOCOL CHECK
 // ═══════════════════════════════════════════════════════════════════
-function checkProtocol() {
-  const proto = window.location.protocol;
-  const host  = window.location.hostname;
-  const isOk  = proto === 'https:' || host === 'localhost' || host === '127.0.0.1' || host === '';
-  if (isOk) return;
-
-  const banner = document.getElementById('protoBanner');
-  const isFile = proto === 'file:';
-  banner.style.display = 'flex';
-
-  document.getElementById('protoHeading').innerHTML = isFile
-    ? '⚠️ Camera unavailable — opened as file://. Use one of these to get HTTPS:'
-    : '⚠️ Camera unavailable — HTTP detected. Camera requires HTTPS:';
-
-  document.getElementById('protoOptions').innerHTML = isFile ? `
-    <div class="proto-opt"><div class="proto-badge">EASIEST</div>
-      <div class="proto-txt"><strong>Netlify Drop</strong> — go to
-        <a href="https://app.netlify.com/drop" target="_blank">app.netlify.com/drop</a>,
-        tap the upload area, pick this file → instant <code>https://</code> URL, works on phone</div></div>
-    <div class="proto-opt"><div class="proto-badge">LOCAL</div>
-      <div class="proto-txt"><strong>Python server</strong> — in Terminal:<br>
-        <code>python3 -m http.server 8080</code><br>
-        then open <code>http://localhost:8080/smiletracker.html</code></div></div>
-    <div class="proto-opt"><div class="proto-badge">VS CODE</div>
-      <div class="proto-txt"><strong>Live Server</strong> — right-click file → <em>Open with Live Server</em></div></div>
-  ` : `
-    <div class="proto-opt"><div class="proto-badge">FREE SSL</div>
-      <div class="proto-txt"><strong>Cloudflare</strong> — proxy your domain for free HTTPS</div></div>
-    <div class="proto-opt"><div class="proto-badge">TUNNEL</div>
-      <div class="proto-txt"><strong>ngrok</strong> — run <code>ngrok http 80</code>
-        for a public <code>https://</code> tunnel</div></div>
-  `;
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// RESIZE CANVAS
-// ═══════════════════════════════════════════════════════════════════
-function resizeCanvas() {
-  const wrap = document.getElementById('camWrap');
-  faceCanvas.width  = wrap.clientWidth;
-  faceCanvas.height = wrap.clientHeight;
-  simCanvas.width   = wrap.clientWidth;
-  simCanvas.height  = wrap.clientHeight;
-}
-window.addEventListener('resize', resizeCanvas);
-
-// ═══════════════════════════════════════════════════════════════════
-// SMILE SCORE FROM FACE LANDMARKS
-// ═══════════════════════════════════════════════════════════════════
-function getSmileScore(lm) {
-  try {
-    const get = i => lm[i];
-    const lc  = get(LM.lCorner),  rc  = get(LM.rCorner);
-    const ul  = get(LM.upperLip), ll  = get(LM.lowerLip);
-    const nos = get(LM.nose),     chi = get(LM.chin);
-    const lch = get(LM.lCheek),   rch = get(LM.rCheek);
-
-    if (!lc || !rc || !ul || !ll || !nos || !chi) return 0;
-
-    const faceH = Math.abs(chi.y - nos.y);
-    if (faceH < 0.01) return 0;
-
-    // Metric 1: corner elevation — corners above midpoint of lips = smile
-    const lipMidY  = (ul.y + ll.y) / 2;
-    const cornerY  = (lc.y + rc.y) / 2;
-    const elevation = (lipMidY - cornerY) / faceH;
-    // elevation > 0 means corners are above lip midpoint (smile)
-    // typical range: -0.05 (frown) to +0.12 (big smile)
-    const elevScore = Math.max(0, Math.min(1, (elevation + 0.02) / 0.10));
-
-    // Metric 2: mouth width relative to face width
-    const mouthW = Math.abs(rc.x - lc.x);
-    const faceW  = lch && rch ? Math.abs(rch.x - lch.x) : 0.3;
-    const widthRatio = faceW > 0 ? mouthW / faceW : 0;
-    // typical neutral ~0.40, smile ~0.52+
-    const widthScore = Math.max(0, Math.min(1, (widthRatio - 0.36) / 0.18));
-
-    // Metric 3: lip parting (open mouth smile)
-    const lipGap = Math.abs(ll.y - ul.y) / faceH;
-    // neutral ~0.01, open smile ~0.04+
-    const gapScore = Math.max(0, Math.min(1, (lipGap - 0.005) / 0.035));
-
-    // Weighted blend
-    const raw = elevScore * 0.55 + widthScore * 0.30 + gapScore * 0.15;
-    return Math.max(0, Math.min(1, raw));
-  } catch(e) {
-    return 0;
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// DRAW FACE OVERLAY
-// ═══════════════════════════════════════════════════════════════════
-function drawFaceOverlay(lm, score) {
-  const W = faceCanvas.width, H = faceCanvas.height;
-  ctx.clearRect(0, 0, W, H);
-
-  if (!lm || lm.length === 0) return;
-
-  // Map normalized coords to canvas (mirror X)
-  const pt = i => {
-    const l = lm[i];
-    return l ? { x: (1 - l.x) * W, y: l.y * H } : null;
-  };
-
-  const smileColor = score > 0.7 ? '#f59e0b' : score > 0.4 ? '#a78bfa' : '#34d399';
-  const alpha = 0.55 + score * 0.35;
-
-  // Draw face mesh — key contours only (not all 468 — too noisy)
-  const contours = [
-    // Jawline
-    [10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,378,400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,21,54,103,67,109,10],
-    // Left eye
-    [33,7,163,144,145,153,154,155,133,173,157,158,159,160,161,246,33],
-    // Right eye
-    [362,382,381,380,374,373,390,249,263,466,388,387,386,385,384,398,362],
-    // Lips outer
-    [61,185,40,39,37,0,267,269,270,409,291,375,321,405,314,17,84,181,91,146,61],
-    // Lips inner
-    [78,95,88,178,87,14,317,402,318,324,308,415,310,311,312,13,82,81,80,191,78],
-    // Nose
-    [1,2,98,327],
-    // Left brow
-    [70,63,105,66,107,55,65,52,53,46],
-    // Right brow
-    [336,296,334,293,300,285,295,282,283,276],
-  ];
-
-  ctx.save();
-  ctx.strokeStyle = smileColor;
-  ctx.lineWidth = 1;
-  ctx.globalAlpha = alpha * 0.6;
-
-  contours.forEach(contour => {
-    ctx.beginPath();
-    contour.forEach((idx, i) => {
-      const p = pt(idx);
-      if (!p) return;
-      i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
-    });
-    ctx.stroke();
-  });
-
-  // Key landmarks as dots
-  const keyPts = [LM.lCorner, LM.rCorner, LM.upperLip, LM.lowerLip, LM.nose, LM.chin, LM.lEye, LM.rEye];
-  ctx.globalAlpha = alpha;
-  ctx.fillStyle = smileColor;
-  keyPts.forEach(i => {
-    const p = pt(i);
-    if (!p) return;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
-  // Score arc around mouth area
-  const lCorner = pt(LM.lCorner), rCorner = pt(LM.rCorner);
-  if (lCorner && rCorner) {
-    const cx = (lCorner.x + rCorner.x) / 2;
-    const cy = (lCorner.y + rCorner.y) / 2;
-    const r  = Math.abs(rCorner.x - lCorner.x) * 0.9;
-    ctx.globalAlpha = 0.4 + score * 0.5;
-    ctx.strokeStyle = smileColor;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0.1 * Math.PI, 0.9 * Math.PI);
-    ctx.stroke();
-  }
-
-  ctx.restore();
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// UPDATE UI
-// ═══════════════════════════════════════════════════════════════════
-function updateUI(rawScore) {
-  // Smooth
-  smoothScore += (rawScore - smoothScore) * SMOOTH_FACTOR;
-  const pct = Math.round(smoothScore * 100);
-
-  // Score badge color
-  const col = pct >= 70 ? 'var(--gold)' : pct >= 40 ? 'var(--purpleL)' : 'var(--greenL)';
-  scoreNum.textContent = pct;
-  scoreNum.style.color = col;
-
-  // History
-  scoreHistory.push(pct);
-  if (scoreHistory.length > 120) scoreHistory.shift();
-  if (pct > peakScore) { peakScore = pct; updateStat('statPeak', peakScore + '%', 'var(--greenL)'); }
-
-  // Smiling?
-  const wasSmiling = smiling;
-  smiling = smoothScore >= SMILE_THRESH;
-
-  smilingBadge.style.display = smiling ? 'block' : 'none';
-  streakRing.style.display   = smiling ? 'block' : 'none';
-  holdWrap.style.display     = smiling ? 'block' : 'none';
-  tapHint.style.display      = smiling ? 'none' : 'block';
-
-  if (smiling) {
-    if (!holdStart) holdStart = Date.now();
-    streakMs = Date.now() - holdStart;
-    totalToothTime += 0.05; // ~50ms ticks
-
-    // Streak ring
-    const streakPct = Math.min(1, streakMs / HOLD_GOAL_MS);
-    const circumference = 144.5;
-    streakArc.style.strokeDashoffset = circumference * (1 - streakPct);
-    streakNum.textContent = (streakMs / 1000).toFixed(1) + 's';
-
-    // Hold bar
-    const hp = Math.round(streakPct * 100);
-    holdFill.style.width = hp + '%';
-    holdPct.textContent = hp + '%';
-
-    // PR!
-    if (streakMs >= HOLD_GOAL_MS && Date.now() - lastPRTime > HOLD_GOAL_MS + 300) {
-      earnPR(pct);
-    }
-  } else {
-    holdStart = null; streakMs = 0;
-    streakArc.style.strokeDashoffset = '144.5';
-    holdFill.style.width = '0%';
-    holdPct.textContent = '0%';
-    streakNum.textContent = '0.0s';
-  }
-
-  // Total tooth time
-  updateStat('statTTT', Math.round(totalToothTime) + 's', 'var(--purpleL)');
-
-  // Draw chart
-  drawChart();
-}
-
-function earnPR(score) {
-  if (prs >= PR_GOAL) return;
-  lastPRTime = Date.now();
-  holdStart = Date.now(); // reset hold
-
-  prs++;
-  const earned = calcWecoin(Math.min(prs, MAX_PRS), 0); // no EAs yet
-  wecoin += Math.round(earned / 100); // small increment per PR; full at end of day
-
-  updateStat('statPRs', prs, 'var(--gold)');
-  updateStat('statGoal', prs + '/' + PR_GOAL, prs >= PR_GOAL ? 'var(--gold)' : 'var(--dim)');
-  document.getElementById('wecoinVal').textContent = wecoin.toLocaleString();
-
-  // Progress
-  const progPct = Math.round((prs / PR_GOAL) * 100);
-  document.getElementById('progFill').style.width = progPct + '%';
-  document.getElementById('progPct').textContent = progPct + '%';
-  document.getElementById('progSub').textContent = prs >= PR_GOAL
-    ? '🏆 AM Bootup complete! Flow state primed.'
-    : `${PR_GOAL - prs} more PRs to complete AM Bootup`;
-
-  // Log entry
-  addLog(score);
-
-  // Flash
-  showPRFlash();
-
-  // Chart visible after first PR
-  document.getElementById('chartPanel').style.display = 'block';
-}
-
-function calcWecoin(pr, ea) {
-  const p = Math.min(pr, MAX_PRS), e = Math.min(ea, MAX_EAS);
-  return p * Math.max(1, e) * Math.pow(2, Math.max(1, e));
-}
-
-function showPRFlash() {
-  const flash = document.getElementById('prFlash');
-  const label = document.getElementById('prLabel');
-  flash.classList.add('pr-flash-active');
-  label.classList.add('pr-flash-active');
-  clearTimeout(prFlashTimeout);
-  prFlashTimeout = setTimeout(() => {
-    flash.classList.remove('pr-flash-active');
-    label.classList.remove('pr-flash-active');
-  }, 700);
-}
-
-function addLog(score) {
-  document.getElementById('noLog').style.display = 'none';
-  const elapsed = Math.round((Date.now() - sessionStart) / 1000);
-  const mins = Math.floor(elapsed / 60), secs = elapsed % 60;
-  const timeStr = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
-  const icon = score >= 80 ? '🌟' : score >= 60 ? '😄' : '🙂';
-  const entry = document.createElement('div');
-  entry.className = 'log-item';
-  entry.innerHTML = `
-    <div class="log-icon">${icon}</div>
-    <div class="log-text"><strong>PR #${prs}</strong> · Score ${score}% · ${Math.round(streakMs/100)/10}s hold</div>
-    <div class="log-score" style="color:${score>=70?'var(--gold)':'var(--purpleL)'}">${score}%</div>
-    <div class="log-time">${timeStr}</div>
-  `;
-  document.getElementById('logBody').prepend(entry);
-}
-
-function updateStat(id, val, color) {
-  const el = document.getElementById(id);
-  el.textContent = val;
-  if (color) el.style.color = color;
-}
-
-function drawChart() {
-  const canvas = document.getElementById('scoreChart');
-  if (!chartCtx) chartCtx = canvas.getContext('2d');
-  const W = canvas.offsetWidth, H = 44;
-  canvas.width = W;
-  ctx2 = chartCtx;
-  ctx2.clearRect(0, 0, W, H);
-
-  const hist = scoreHistory.slice(-60);
-  if (hist.length < 2) return;
-
-  const barW = W / hist.length;
-  hist.forEach((s, i) => {
-    const bh = Math.max(2, (s / 100) * H);
-    const color = s >= 70 ? '#f59e0b' : s >= 40 ? '#a78bfa' : '#34d399';
-    ctx2.fillStyle = color;
-    ctx2.globalAlpha = 0.75;
-    ctx2.beginPath();
-    ctx2.roundRect(i * barW + 0.5, H - bh, barW - 1, bh, 1);
-    ctx2.fill();
-  });
-  ctx2.globalAlpha = 1;
-
-  // Threshold line
-  ctx2.strokeStyle = 'rgba(245,158,11,.25)';
-  ctx2.lineWidth = 1;
-  ctx2.setLineDash([3, 3]);
-  const threshY = H - (SMILE_THRESH * H);
-  ctx2.beginPath();
-  ctx2.moveTo(0, threshY);
-  ctx2.lineTo(W, threshY);
-  ctx2.stroke();
-  ctx2.setLineDash([]);
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// SIMULATION MODE (no camera)
-// ═══════════════════════════════════════════════════════════════════
-function startSim() {
-  mode = 'sim';
-  statusDot.className = 'sim';
-  simCanvas.style.display = 'block';
-  loadOverlay.style.display = 'none';
-  scoreBadge.style.display = 'flex';
-  tapHint.style.display = 'block';
-
-  const sctx = simCanvas.getContext('2d');
-
-  simTick = setInterval(() => {
-    simPhase += 0.04;
-    const W = simCanvas.width, H = simCanvas.height;
-    sctx.clearRect(0, 0, W, H);
-
-    // Animated face silhouette
-    const cx = W / 2, cy = H / 2;
-    const fw = Math.min(W, H) * 0.38;
-
-    // Face oval
-    sctx.save();
-    sctx.strokeStyle = '#242436';
-    sctx.lineWidth = 2;
-    sctx.beginPath();
-    sctx.ellipse(cx, cy, fw * 0.65, fw * 0.85, 0, 0, Math.PI * 2);
-    sctx.stroke();
-
-    // Animated smile score (oscillates between 0.1 and 0.85)
-    const simScore = 0.45 + Math.sin(simPhase * 0.7) * 0.38;
-    const smileAmt = Math.max(0, simScore);
-
-    // Eyes
-    [cx - fw * 0.22, cx + fw * 0.22].forEach(ex => {
-      sctx.beginPath();
-      sctx.ellipse(ex, cy - fw * 0.18, fw * 0.07, fw * 0.09, 0, 0, Math.PI * 2);
-      sctx.strokeStyle = '#545474';
-      sctx.stroke();
-    });
-
-    // Animated mouth
-    const mouthY  = cy + fw * 0.22;
-    const mouthW  = fw * 0.35 + smileAmt * fw * 0.15;
-    const curvature = smileAmt * fw * 0.28;
-    const smileColor = smileAmt > 0.7 ? '#f59e0b' : smileAmt > 0.4 ? '#a78bfa' : '#545474';
-
-    sctx.beginPath();
-    sctx.moveTo(cx - mouthW, mouthY);
-    sctx.quadraticCurveTo(cx, mouthY + curvature, cx + mouthW, mouthY);
-    sctx.strokeStyle = smileColor;
-    sctx.lineWidth = 2.5;
-    sctx.stroke();
-
-    // Corner dots
-    sctx.fillStyle = smileColor;
-    [[cx - mouthW, mouthY], [cx + mouthW, mouthY]].forEach(([x, y]) => {
-      sctx.beginPath(); sctx.arc(x, y, 3, 0, Math.PI * 2); sctx.fill();
-    });
-
-    sctx.restore();
-
-    updateUI(simScore);
-  }, 50);
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// MEDIAPIPE FACE MESH INIT
-// ═══════════════════════════════════════════════════════════════════
-async function initFaceMesh() {
-  // Check MediaPipe available
-  if (typeof window.FaceMesh === 'undefined') {
-    console.warn('FaceMesh not available, starting sim');
-    startSim();
-    return;
-  }
-
-  // Request camera
-  let stream;
-  try {
-    loadStep.textContent = 'Requesting camera permission…';
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: 'user',
-        width: { ideal: 640 },
-        height: { ideal: 480 },
-      },
-      audio: false,
-    });
-  } catch(e) {
-    console.warn('Camera denied:', e);
-    loadStep.textContent = 'Camera denied — starting simulation…';
-    setTimeout(startSim, 800);
-    return;
-  }
-
-  videoEl.srcObject = stream;
-  await videoEl.play();
-
-  loadStep.textContent = 'Loading face mesh model…';
-
-  try {
-    const mesh = new window.FaceMesh({
-      locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`
-    });
-
-    mesh.setOptions({
-      maxNumFaces: 1,
-      refineLandmarks: true,
-      minDetectionConfidence: 0.55,
-      minTrackingConfidence: 0.55,
-    });
-
-    let frameCount = 0;
-    mesh.onResults(results => {
-      const W = faceCanvas.width, H = faceCanvas.height;
-
-      // Draw video (mirrored)
-      ctx.save();
-      ctx.clearRect(0, 0, W, H);
-      ctx.scale(-1, 1);
-      ctx.translate(-W, 0);
-      if (results.image) ctx.drawImage(results.image, 0, 0, W, H);
-      ctx.restore();
-
-      if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
-        const lm = results.multiFaceLandmarks[0];
-        const rawScore = getSmileScore(lm);
-        drawFaceOverlay(lm, rawScore);
-        updateUI(rawScore);
-      } else {
-        // No face detected — decay score toward 0
-        updateUI(smoothScore * 0.85);
-      }
-
-      frameCount++;
-      if (frameCount === 1) {
-        // First frame received — hide loading
-        loadOverlay.style.display = 'none';
-        scoreBadge.style.display = 'flex';
-        tapHint.style.display = 'block';
-        statusDot.className = 'live';
-        mode = 'live';
-      }
-    });
-
-    faceMesh = mesh;
-
-    const camera = new window.Camera(videoEl, {
-      onFrame: async () => {
-        if (faceMesh) {
-          try { await faceMesh.send({ image: videoEl }); } catch(e) {}
-        }
-      },
-      width: 640, height: 480,
-    });
-
-    await camera.start();
-    cameraInst = camera;
-
-    // Timeout: if no frame in 8s, fall back to sim
-    const fbTimeout = setTimeout(() => {
-      if (mode === 'loading') {
-        console.warn('Face mesh timeout, starting sim');
-        startSim();
-      }
-    }, 8000);
-
-    mesh.onResults = (results) => {
-      clearTimeout(fbTimeout);
-      // re-assign the real handler
-      mesh.onResults = null; // remove self-reassign
-      // ... handled above via closure
-    };
-
-    // Actually we need to keep the handler — redo cleanly
-    faceMesh.onResults(results => {}); // no-op to clear
-    let firstFrame = true;
-    faceMesh = mesh;
-    faceMesh.onResults = results => {
-      const W = faceCanvas.width, H = faceCanvas.height;
-      ctx.save();
-      ctx.clearRect(0, 0, W, H);
-      ctx.scale(-1, 1); ctx.translate(-W, 0);
-      if (results.image) ctx.drawImage(results.image, 0, 0, W, H);
-      ctx.restore();
-
-      if (firstFrame) {
-        clearTimeout(fbTimeout);
-        firstFrame = false;
-        loadOverlay.style.display = 'none';
-        scoreBadge.style.display = 'flex';
-        tapHint.style.display = 'block';
-        statusDot.className = 'live';
-        mode = 'live';
-      }
-
-      if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
-        const lm = results.multiFaceLandmarks[0];
-        const rawScore = getSmileScore(lm);
-        drawFaceOverlay(lm, rawScore);
-        updateUI(rawScore);
-      } else {
-        updateUI(smoothScore * 0.85);
-      }
-    };
-
-  } catch(e) {
-    console.warn('FaceMesh init error:', e);
-    loadStep.textContent = 'Face mesh failed — starting simulation…';
-    setTimeout(startSim, 800);
-  }
+function checkProtocol(){
+  const proto=window.location.protocol,host=window.location.hostname;
+  const ok=proto==='https:'||host==='localhost'||host==='127.0.0.1'||host==='';
+  if(ok)return;
+  const banner=document.createElement('div');
+  const isFile=proto==='file:';
+  banner.style.cssText='position:fixed;top:0;left:0;right:0;z-index:999;background:linear-gradient(135deg,#120800,#080000);border-bottom:2px solid #f59e0b;padding:12px 14px;font-family:Space Grotesk,sans-serif;font-size:11px;color:#fcd34d';
+  banner.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><strong>⚠ Camera unavailable — ${isFile?'file://':'HTTP'} detected.</strong> ${isFile?'<br>Fix: <strong>Netlify Drop</strong> (drag file to app.netlify.com/drop) or <code style="background:rgba(0,0,0,.4);padding:1px 5px;border-radius:3px">python3 -m http.server 8080</code> then open localhost':'Use HTTPS or ngrok.'}</div><button onclick="this.parentElement.parentElement.remove()" style="background:rgba(245,158,11,.2);border:1px solid rgba(245,158,11,.3);color:#fcd34d;border-radius:6px;padding:3px 9px;cursor:pointer;font-family:inherit">✕</button></div>`;
+  document.body.prepend(banner);
 }
 
 // ═══════════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════════
 checkProtocol();
-resizeCanvas();
-initFaceMesh();
+buildHome();
+renderTasks();
 </script>
-
 </body>
 </html>
